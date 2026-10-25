@@ -119,12 +119,16 @@ class ProjectController extends Controller
             'order' => 1,
         ]);
 
-        return redirect()->route('projects.show', $project->id)
+        return redirect()->route('projects.show', $project)
             ->with('success', 'Proyek berhasil dibuat!');
     }
 
-    public function show(Request $request, Project $project): Response
+    public function show(Request $request, Project $project): Response|RedirectResponse
     {
+        if ($request->segment(2) === (string) $project->id && ! empty($project->slug)) {
+            return redirect()->route('projects.show', $project);
+        }
+
         if (! $project->hasAccess($request->user())) {
             abort(403, 'Anda tidak memiliki akses ke proyek ini.');
         }

@@ -214,7 +214,7 @@ const getModeBadge = (mode) => {
                         <div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-xs">
                             <span v-if="idea.status === 'converted'" class="text-emerald-800 font-bold flex items-center">
                                 <AppIcon name="check" :size="14" class="mr-1 text-emerald-600" />
-                                <Link :href="route('projects.show', idea.project_id)" class="hover:underline inline-flex items-center gap-1">
+                                <Link :href="route('projects.show', idea.project?.slug || idea.project_id)" class="hover:underline inline-flex items-center gap-1">
                                     Telah jadi proyek
                                     <AppIcon name="arrow-right" :size="12" />
                                 </Link>

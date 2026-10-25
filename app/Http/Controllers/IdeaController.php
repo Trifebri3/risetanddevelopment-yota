@@ -116,7 +116,7 @@ class IdeaController extends Controller
             'project_id' => $project->id,
         ]);
 
-        return redirect()->route('projects.show', $project->id)
+        return redirect()->route('projects.show', $project)
             ->with('success', 'Ide berhasil dikonversi menjadi Proyek baru!');
     }
 }

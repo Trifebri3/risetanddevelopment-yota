@@ -52,7 +52,7 @@ class ProjectTeamCollaborationTest extends TestCase
 
         $response = $this->actingAs($newUser)->get(route('projects.join', $project->team_invite_token));
 
-        $response->assertRedirect(route('projects.show', $project->id));
+        $response->assertRedirect(route('projects.show', $project));
         $this->assertDatabaseHas('project_members', [
             'project_id' => $project->id,
             'user_id' => $newUser->id,
@@ -81,11 +81,11 @@ class ProjectTeamCollaborationTest extends TestCase
         ]);
 
         // Member can view project
-        $viewResponse = $this->actingAs($member)->get(route('projects.show', $project->id));
+        $viewResponse = $this->actingAs($member)->get(route('projects.show', $project));
         $viewResponse->assertStatus(200);
 
         // Member can add a task
-        $taskResponse = $this->actingAs($member)->post(route('tasks.store', $project->id), [
+        $taskResponse = $this->actingAs($member)->post(route('tasks.store', $project), [
             'title' => 'Survei awal bank sampah RW 05',
             'priority' => 'high',
         ]);
@@ -108,7 +108,7 @@ class ProjectTeamCollaborationTest extends TestCase
             'status' => 'active',
         ]);
 
-        $response = $this->actingAs($stranger)->get(route('projects.show', $project->id));
+        $response = $this->actingAs($stranger)->get(route('projects.show', $project));
         $response->assertStatus(403);
     }
 

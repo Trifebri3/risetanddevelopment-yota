@@ -217,7 +217,7 @@ const getModeBadge = (mode) => {
                                             </div>
 
                                             <h3 class="text-sm sm:text-base font-bold text-slate-900 group-hover:text-emerald-700 transition-colors">
-                                                <Link :href="route('projects.show', project.id)">
+                                                <Link :href="route('projects.show', project.slug || project.id)">
                                                     {{ project.title }}
                                                 </Link>
                                             </h3>
@@ -233,7 +233,7 @@ const getModeBadge = (mode) => {
                                                 <span class="text-[11px] text-slate-400 block">Progres</span>
                                             </div>
                                             <Link
-                                                :href="route('projects.show', project.id)"
+                                                :href="route('projects.show', project.slug || project.id)"
                                                 class="inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded-xl bg-slate-100 text-slate-700 group-hover:bg-emerald-600 group-hover:text-white transition-all active:scale-95"
                                             >
                                                 <span>Buka Workspace</span>

@@ -269,7 +269,7 @@ const getModeInfo = (mode) => {
 
 
                             <h3 class="text-base sm:text-lg font-bold text-slate-900 group-hover:text-emerald-700 transition-colors line-clamp-2">
-                                <Link :href="route('projects.show', project.id)">
+                                <Link :href="route('projects.show', project.slug || project.id)">
                                     {{ project.title }}
                                 </Link>
                             </h3>
@@ -304,7 +304,7 @@ const getModeInfo = (mode) => {
                                 </div>
 
                                 <Link
-                                    :href="route('projects.show', project.id)"
+                                    :href="route('projects.show', project.slug || project.id)"
                                     class="inline-flex items-center px-3.5 py-1.5 text-xs font-bold rounded-xl bg-slate-100 text-slate-700 group-hover:bg-emerald-600 group-hover:text-white transition-all shadow-xs active:scale-95"
                                 >
                                     <span>Workspace</span>

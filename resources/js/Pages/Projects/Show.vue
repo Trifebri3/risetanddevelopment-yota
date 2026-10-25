@@ -33,6 +33,7 @@ const isTeamModalOpen = ref(false);
 
 const copiedShareLink = ref(false);
 const copiedTeamInviteLink = ref(false);
+const projectKey = computed(() => props.project.slug || props.project.id);
 
 const publicShareUrl = computed(() => {
     return `${window.location.origin}/share/${props.project.share_token}`;
@@ -94,7 +95,7 @@ const projectForm = useForm({
 });
 
 const submitProjectEdit = () => {
-    projectForm.put(route('projects.update', props.project.id), {
+    projectForm.put(route('projects.update', projectKey.value), {
         onSuccess: () => {
             isProjectModalOpen.value = false;
         },
@@ -103,7 +104,7 @@ const submitProjectEdit = () => {
 
 const deleteProject = () => {
     if (confirm(`Yakin ingin menghapus proyek "${props.project.title}"? Semua data fase, milestone, tugas, logbook, dan anggaran akan terhapus permanen.`)) {
-        router.delete(route('projects.destroy', props.project.id));
+        router.delete(route('projects.destroy', projectKey.value));
     }
 };
 
@@ -115,7 +116,7 @@ const phaseForm = useForm({
 });
 
 const submitPhase = () => {
-    phaseForm.post(route('phases.store', props.project.id), {
+    phaseForm.post(route('phases.store', projectKey.value), {
         onSuccess: () => {
             isPhaseModalOpen.value = false;
             phaseForm.reset();
@@ -160,7 +161,7 @@ const milestoneForm = useForm({
 });
 
 const submitMilestone = () => {
-    milestoneForm.post(route('milestones.store', props.project.id), {
+    milestoneForm.post(route('milestones.store', projectKey.value), {
         onSuccess: () => {
             isMilestoneModalOpen.value = false;
             milestoneForm.reset();
@@ -227,7 +228,7 @@ const taskForm = useForm({
 });
 
 const submitTask = () => {
-    taskForm.post(route('tasks.store', props.project.id), {
+    taskForm.post(route('tasks.store', projectKey.value), {
         onSuccess: () => {
             isTaskModalOpen.value = false;
             taskForm.reset();
@@ -298,7 +299,7 @@ const handleJournalFileUpload = (e) => {
 };
 
 const submitJournal = () => {
-    journalForm.post(route('journal.store', props.project.id), {
+    journalForm.post(route('journal.store', projectKey.value), {
         onSuccess: () => {
             isJournalModalOpen.value = false;
             journalForm.reset();
@@ -366,7 +367,7 @@ const budgetItemForm = useForm({
 });
 
 const submitBudgetItem = () => {
-    budgetItemForm.post(route('budget.items.store', props.project.id), {
+    budgetItemForm.post(route('budget.items.store', projectKey.value), {
         onSuccess: () => {
             isBudgetItemModalOpen.value = false;
             budgetItemForm.reset();
@@ -422,7 +423,7 @@ const expenseForm = useForm({
 });
 
 const submitExpense = () => {
-    expenseForm.post(route('budget.expenses.store', props.project.id), {
+    expenseForm.post(route('budget.expenses.store', projectKey.value), {
         onSuccess: () => {
             isExpenseModalOpen.value = false;
             expenseForm.reset();
@@ -481,7 +482,7 @@ const outputForm = useForm({
 });
 
 const submitOutput = () => {
-    outputForm.post(route('outputs.store', props.project.id), {
+    outputForm.post(route('outputs.store', projectKey.value), {
         onSuccess: () => {
             isOutputModalOpen.value = false;
             outputForm.reset();
@@ -546,14 +547,14 @@ const sharingForm = useForm({
 });
 
 const saveSharingSettings = () => {
-    sharingForm.post(route('projects.share.update', props.project.id), {
+    sharingForm.post(route('projects.share.update', projectKey.value), {
         preserveScroll: true,
     });
 };
 
 const regenerateToken = () => {
     if (confirm('Tautan publik lama akan dinonaktifkan dan diganti dengan token baru. Lanjutkan?')) {
-        router.post(route('projects.share.regenerate', props.project.id), {}, { preserveScroll: true });
+        router.post(route('projects.share.regenerate', projectKey.value), {}, { preserveScroll: true });
     }
 };
 
@@ -566,7 +567,7 @@ const memberForm = useForm({
 });
 
 const submitMember = () => {
-    memberForm.post(route('projects.members.store', props.project.id), {
+    memberForm.post(route('projects.members.store', projectKey.value), {
         onSuccess: () => {
             isTeamModalOpen.value = false;
             memberForm.reset();
@@ -577,7 +578,7 @@ const submitMember = () => {
 const removeMember = (member) => {
     const name = member.user?.name || member.email;
     if (confirm(`Hapus ${name} dari tim proyek ini?`)) {
-        router.delete(route('projects.members.destroy', [props.project.id, member.id]), {
+        router.delete(route('projects.members.destroy', [projectKey.value, member.id]), {
             preserveScroll: true,
         });
     }
@@ -585,7 +586,7 @@ const removeMember = (member) => {
 
 const regenerateTeamInvite = () => {
     if (confirm('Perbarui tautan undangan tim? Tautan lama akan kadaluarsa dan tidak bisa digunakan.')) {
-        router.post(route('projects.members.regenerate_invite', props.project.id), {}, {
+        router.post(route('projects.members.regenerate_invite', projectKey.value), {}, {
             preserveScroll: true,
         });
     }
@@ -1167,7 +1168,7 @@ const regenerateTeamInvite = () => {
                         </div>
                         <div class="flex flex-wrap items-center gap-2">
                             <a
-                                :href="route('budget.export', project.id)"
+                                :href="route('budget.export', project.slug || project.id)"
                                 class="flex-1 sm:flex-none px-3.5 py-2 text-xs font-semibold rounded-xl bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 shadow-xs flex items-center justify-center active:scale-95"
                             >
                                 <AppIcon name="download" :size="13" class="mr-1.5" />

@@ -44,7 +44,14 @@ class Project extends Model
 
         static::creating(function ($project) {
             if (empty($project->slug)) {
-                $project->slug = Str::slug($project->title).'-'.Str::lower(Str::random(6));
+                $base = Str::slug($project->title);
+                $base = $base ? Str::limit($base, 90, '') : 'proyek';
+
+                $slug = $base;
+                if (static::where('slug', $slug)->exists()) {
+                    $slug = $base.'-'.Str::lower(Str::random(6));
+                }
+                $project->slug = $slug;
             }
             if (empty($project->share_token)) {
                 $project->share_token = Str::random(32);
@@ -61,6 +68,23 @@ class Project extends Model
                     'show_budget_summary' => true,
                     'allow_feedback' => true,
                 ];
+            }
+        });
+    }
+
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
+    }
+
+    public function resolveRouteBindingQuery($query, $value, $field = null)
+    {
+        $field = $field ?? $this->getRouteKeyName();
+
+        return $query->where(function ($q) use ($field, $value) {
+            $q->where($field, $value);
+            if (is_numeric($value)) {
+                $q->orWhere('id', (int) $value);
             }
         });
     }

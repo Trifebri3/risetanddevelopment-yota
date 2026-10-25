@@ -86,7 +86,7 @@ class ProjectMemberController extends Controller
         $user = $request->user();
 
         if ($project->isOwner($user)) {
-            return redirect()->route('projects.show', $project->id)
+            return redirect()->route('projects.show', $project)
                 ->with('info', 'Anda adalah ketua/pemilik proyek ini.');
         }
 
@@ -102,7 +102,7 @@ class ProjectMemberController extends Controller
                 $existingMember->update(['user_id' => $user->id]);
             }
 
-            return redirect()->route('projects.show', $project->id)
+            return redirect()->route('projects.show', $project)
                 ->with('success', 'Anda sudah menjadi anggota tim di proyek ini.');
         }
 
@@ -113,7 +113,7 @@ class ProjectMemberController extends Controller
             'status' => 'active',
         ]);
 
-        return redirect()->route('projects.show', $project->id)
+        return redirect()->route('projects.show', $project)
             ->with('success', 'Selamat! Anda berhasil bergabung ke dalam tim proyek "'.$project->title.'".');
     }
 

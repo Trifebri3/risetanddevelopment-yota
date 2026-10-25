@@ -47,7 +47,7 @@ class RDWorkspaceTest extends TestCase
         $this->assertNotNull($project);
         $this->assertEquals('Riset Bio-Material Sekam Padi', $project->title);
         $this->assertCount(1, $project->phases);
-        $response->assertRedirect(route('projects.show', $project->id));
+        $response->assertRedirect(route('projects.show', $project));
     }
 
     public function test_public_project_can_be_viewed_by_guest_without_login(): void
@@ -136,7 +136,7 @@ class RDWorkspaceTest extends TestCase
         $this->assertNotNull($project);
         $this->assertEquals('Inovasi Robot SAR - Kontes Robot Indonesia 2026', $project->title);
         $this->assertEquals('Fase 1: Analisis Panduan & Gagasan Lomba', $project->phases->first()->name);
-        $response->assertRedirect(route('projects.show', $project->id));
+        $response->assertRedirect(route('projects.show', $project));
     }
 
     public function test_user_can_crud_ideas_including_competition(): void
@@ -223,5 +223,27 @@ class RDWorkspaceTest extends TestCase
         // Delete Phase
         $this->actingAs($user)->delete(route('phases.destroy', $phase->id));
         $this->assertDatabaseMissing('phases', ['id' => $phase->id]);
+    }
+
+    public function test_project_accessible_via_slug_and_numeric_id_redirects_to_slug(): void
+    {
+        $user = User::factory()->create();
+        $project = Project::create([
+            'user_id' => $user->id,
+            'title' => 'Sistem Deteksi Hama',
+            'mode' => 'research',
+            'status' => 'active',
+        ]);
+
+        $this->assertNotNull($project->slug);
+        $this->assertStringContainsString('sistem-deteksi-hama', $project->slug);
+
+        // Access via slug directly returns 200 OK
+        $slugResponse = $this->actingAs($user)->get(route('projects.show', $project));
+        $slugResponse->assertStatus(200);
+
+        // Access via numeric ID redirects to the slug URL
+        $idResponse = $this->actingAs($user)->get('/projects/'.$project->id);
+        $idResponse->assertRedirect(route('projects.show', $project));
     }
 }
