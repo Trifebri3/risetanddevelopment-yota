@@ -33,6 +33,32 @@ class TaskController extends Controller
         return back()->with('success', 'Fase baru ditambahkan.');
     }
 
+    public function updatePhase(Request $request, Phase $phase): RedirectResponse
+    {
+        if (! $phase->project->hasAccess($request->user())) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+        ]);
+
+        $phase->update($validated);
+
+        return back()->with('success', 'Nama fase berhasil diperbarui.');
+    }
+
+    public function destroyPhase(Request $request, Phase $phase): RedirectResponse
+    {
+        if (! $phase->project->hasAccess($request->user())) {
+            abort(403);
+        }
+
+        $phase->delete();
+
+        return back()->with('success', 'Fase berhasil dihapus.');
+    }
+
     public function storeMilestone(Request $request, Project $project): RedirectResponse
     {
         if (! $project->hasAccess($request->user())) {

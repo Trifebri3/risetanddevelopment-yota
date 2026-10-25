@@ -73,7 +73,7 @@ class ProjectController extends Controller
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
-            'mode' => 'required|in:research,product,social',
+            'mode' => 'required|in:research,product,social,competition',
             'description' => 'nullable|string',
             'problem_statement' => 'nullable|string',
             'target_outcome' => 'nullable|string',
@@ -109,6 +109,7 @@ class ProjectController extends Controller
             'research' => 'Fase 1: Eksplorasi Teori & Tinjauan Pustaka',
             'product' => 'Fase 1: Validasi Kebutuhan & Desain Awal',
             'social' => 'Fase 1: Pemetaan Masalah & Stakeholder Lapangan',
+            'competition' => 'Fase 1: Analisis Panduan & Gagasan Lomba',
             default => 'Fase 1: Perencanaan & Inisiasi',
         };
 
@@ -170,7 +171,7 @@ class ProjectController extends Controller
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
-            'mode' => 'required|in:research,product,social',
+            'mode' => 'required|in:research,product,social,competition',
             'description' => 'nullable|string',
             'problem_statement' => 'nullable|string',
             'target_outcome' => 'nullable|string',

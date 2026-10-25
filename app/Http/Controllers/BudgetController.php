@@ -112,6 +112,26 @@ class BudgetController extends Controller
         return back()->with('success', 'Pengeluaran aktual berhasil dicatat.');
     }
 
+    public function updateExpense(Request $request, Expense $expense): RedirectResponse
+    {
+        if (! $expense->project->hasAccess($request->user())) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'budget_item_id' => 'nullable|exists:budget_items,id',
+            'date' => 'required|date',
+            'description' => 'required|string|max:255',
+            'category' => 'required|string|max:100',
+            'amount' => 'required|numeric|min:0',
+            'notes' => 'nullable|string',
+        ]);
+
+        $expense->update($validated);
+
+        return back()->with('success', 'Catatan pengeluaran berhasil diperbarui.');
+    }
+
     public function destroyExpense(Request $request, Expense $expense): RedirectResponse
     {
         if (! $expense->project->hasAccess($request->user())) {

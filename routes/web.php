@@ -60,6 +60,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Milestones & Tasks
     Route::post('/projects/{project}/phases', [TaskController::class, 'storePhase'])->name('phases.store');
+    Route::put('/phases/{phase}', [TaskController::class, 'updatePhase'])->name('phases.update');
+    Route::delete('/phases/{phase}', [TaskController::class, 'destroyPhase'])->name('phases.destroy');
     Route::post('/projects/{project}/milestones', [TaskController::class, 'storeMilestone'])->name('milestones.store');
     Route::put('/milestones/{milestone}', [TaskController::class, 'updateMilestone'])->name('milestones.update');
     Route::delete('/milestones/{milestone}', [TaskController::class, 'destroyMilestone'])->name('milestones.destroy');
@@ -79,6 +81,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('/budget-items/{budgetItem}', [BudgetController::class, 'updateBudgetItem'])->name('budget.items.update');
     Route::delete('/budget-items/{budgetItem}', [BudgetController::class, 'destroyBudgetItem'])->name('budget.items.destroy');
     Route::post('/projects/{project}/expenses', [BudgetController::class, 'storeExpense'])->name('budget.expenses.store');
+    Route::put('/expenses/{expense}', [BudgetController::class, 'updateExpense'])->name('budget.expenses.update');
     Route::delete('/expenses/{expense}', [BudgetController::class, 'destroyExpense'])->name('budget.expenses.destroy');
     Route::get('/projects/{project}/export-csv', [BudgetController::class, 'exportCsv'])->name('budget.export');
 

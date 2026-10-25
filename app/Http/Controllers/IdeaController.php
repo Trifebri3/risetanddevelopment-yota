@@ -33,7 +33,7 @@ class IdeaController extends Controller
             'title' => 'required|string|max:255',
             'content' => 'required|string',
             'category_tag' => 'nullable|string|max:50',
-            'suggested_mode' => 'required|in:research,product,social',
+            'suggested_mode' => 'required|in:research,product,social,competition',
         ]);
 
         Idea::create([
@@ -58,7 +58,7 @@ class IdeaController extends Controller
             'title' => 'required|string|max:255',
             'content' => 'required|string',
             'category_tag' => 'nullable|string|max:50',
-            'suggested_mode' => 'required|in:research,product,social',
+            'suggested_mode' => 'required|in:research,product,social,competition',
             'status' => 'required|in:draft,converted,archived',
         ]);
 

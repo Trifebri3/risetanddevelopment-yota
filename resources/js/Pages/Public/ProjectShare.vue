@@ -42,6 +42,8 @@ const getModeInfo = (mode) => {
             return { label: 'Product Development', color: 'bg-emerald-50 text-emerald-800 border-emerald-200', icon: 'product' };
         case 'social':
             return { label: 'Social Project Development', color: 'bg-emerald-50 text-emerald-800 border-emerald-200', icon: 'social' };
+        case 'competition':
+            return { label: 'Lomba & Kompetisi', color: 'bg-amber-50 text-amber-800 border-amber-200', icon: 'competition' };
         default:
             return { label: 'Proyek R&D', color: 'bg-slate-50 text-slate-700 border-slate-200', icon: 'folder' };
     }

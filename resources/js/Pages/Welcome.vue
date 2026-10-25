@@ -25,6 +25,8 @@ const getModeBadge = (mode) => {
             return { label: 'Product Dev', icon: 'product', color: 'bg-emerald-50 text-emerald-800 border-emerald-200' };
         case 'social':
             return { label: 'Social Project', icon: 'social', color: 'bg-emerald-50 text-emerald-800 border-emerald-200' };
+        case 'competition':
+            return { label: 'Lomba & Kompetisi', icon: 'competition', color: 'bg-amber-50 text-amber-800 border-amber-200' };
         default:
             return { label: 'R&D', icon: 'folder', color: 'bg-slate-100 text-slate-800 border-slate-200' };
     }

@@ -79,6 +79,13 @@ const getModeInfo = (mode) => {
                 icon: 'social',
                 desc: 'Pohon masalah, intervensi komunitas, penerima manfaat, & KPI dampak.',
             };
+        case 'competition':
+            return {
+                label: 'Lomba & Kompetisi',
+                badge: 'bg-amber-50 text-amber-800 border-amber-200',
+                icon: 'competition',
+                desc: 'Panduan lomba, proposal/pitching, seleksi bertahap, & target kejuaraan.',
+            };
         default:
             return {
                 label: 'Umum',
@@ -192,6 +199,14 @@ const getModeInfo = (mode) => {
                             >
                                 <AppIcon name="social" :size="13" class="mr-1" />
                                 <span>Sosial</span>
+                            </button>
+                            <button
+                                @click="selectedMode = 'competition'; applyFilter()"
+                                :class="selectedMode === 'competition' ? 'bg-white shadow-xs text-amber-800 font-bold' : 'text-slate-600 hover:text-slate-900'"
+                                class="px-3 py-1.5 rounded-lg transition-all flex items-center whitespace-nowrap"
+                            >
+                                <AppIcon name="competition" :size="13" class="mr-1" />
+                                <span>Lomba</span>
                             </button>
                         </div>
 
@@ -322,10 +337,10 @@ const getModeInfo = (mode) => {
                     <!-- Mode Proyek Selection (3 Choice Cards) -->
                     <div>
                         <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">Pilih Mode Proyek</label>
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
                             <label
                                 :class="form.mode === 'research' ? 'border-emerald-600 bg-emerald-50/70 ring-2 ring-emerald-500/20' : 'border-slate-200 hover:bg-slate-50'"
-                                class="border rounded-2xl p-3.5 cursor-pointer transition-all flex flex-col justify-between"
+                                class="border rounded-2xl p-3 sm:p-3.5 cursor-pointer transition-all flex flex-col justify-between"
                             >
                                 <input type="radio" v-model="form.mode" value="research" class="sr-only" />
                                 <div>
@@ -333,13 +348,13 @@ const getModeInfo = (mode) => {
                                         <AppIcon name="research" :size="18" />
                                     </div>
                                     <div class="text-xs sm:text-sm font-bold text-slate-900">Research Dev</div>
-                                    <p class="text-[11px] text-slate-500 mt-1">Fokus hipotesis, metode, data, dan manuskrip jurnal.</p>
+                                    <p class="text-[10px] sm:text-[11px] text-slate-500 mt-1">Hipotesis, metode, data, & jurnal.</p>
                                 </div>
                             </label>
 
                             <label
                                 :class="form.mode === 'product' ? 'border-emerald-600 bg-emerald-50/70 ring-2 ring-emerald-500/20' : 'border-slate-200 hover:bg-slate-50'"
-                                class="border rounded-2xl p-3.5 cursor-pointer transition-all flex flex-col justify-between"
+                                class="border rounded-2xl p-3 sm:p-3.5 cursor-pointer transition-all flex flex-col justify-between"
                             >
                                 <input type="radio" v-model="form.mode" value="product" class="sr-only" />
                                 <div>
@@ -347,13 +362,13 @@ const getModeInfo = (mode) => {
                                         <AppIcon name="product" :size="18" />
                                     </div>
                                     <div class="text-xs sm:text-sm font-bold text-slate-900">Product Dev</div>
-                                    <p class="text-[11px] text-slate-500 mt-1">Fokus kebutuhan teknis, BOM, prototipe, & uji rilis.</p>
+                                    <p class="text-[10px] sm:text-[11px] text-slate-500 mt-1">Kebutuhan teknis, prototipe, & MVP.</p>
                                 </div>
                             </label>
 
                             <label
                                 :class="form.mode === 'social' ? 'border-emerald-600 bg-emerald-50/70 ring-2 ring-emerald-500/20' : 'border-slate-200 hover:bg-slate-50'"
-                                class="border rounded-2xl p-3.5 cursor-pointer transition-all flex flex-col justify-between"
+                                class="border rounded-2xl p-3 sm:p-3.5 cursor-pointer transition-all flex flex-col justify-between"
                             >
                                 <input type="radio" v-model="form.mode" value="social" class="sr-only" />
                                 <div>
@@ -361,7 +376,21 @@ const getModeInfo = (mode) => {
                                         <AppIcon name="social" :size="18" />
                                     </div>
                                     <div class="text-xs sm:text-sm font-bold text-slate-900">Social Project</div>
-                                    <p class="text-[11px] text-slate-500 mt-1">Fokus masalah sosial, kegiatan lapangan, & laporan dampak.</p>
+                                    <p class="text-[10px] sm:text-[11px] text-slate-500 mt-1">Komunitas, lapangan, & KPI dampak.</p>
+                                </div>
+                            </label>
+
+                            <label
+                                :class="form.mode === 'competition' ? 'border-amber-600 bg-amber-50/70 ring-2 ring-amber-500/20' : 'border-slate-200 hover:bg-slate-50'"
+                                class="border rounded-2xl p-3 sm:p-3.5 cursor-pointer transition-all flex flex-col justify-between"
+                            >
+                                <input type="radio" v-model="form.mode" value="competition" class="sr-only" />
+                                <div>
+                                    <div class="w-8 h-8 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center mb-2">
+                                        <AppIcon name="competition" :size="18" />
+                                    </div>
+                                    <div class="text-xs sm:text-sm font-bold text-slate-900">Lomba & Inovasi</div>
+                                    <p class="text-[10px] sm:text-[11px] text-slate-500 mt-1">Panduan lomba, pitch deck, & juara.</p>
                                 </div>
                             </label>
                         </div>

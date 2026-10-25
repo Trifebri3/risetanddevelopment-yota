@@ -2,6 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Models\Expense;
+use App\Models\Idea;
+use App\Models\Phase;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -115,5 +118,110 @@ class RDWorkspaceTest extends TestCase
 
         $response = $this->get(route('public.share', $project->share_token));
         $response->assertStatus(404);
+    }
+
+    public function test_user_can_create_competition_project(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->post(route('projects.store'), [
+            'title' => 'Inovasi Robot SAR - Kontes Robot Indonesia 2026',
+            'mode' => 'competition',
+            'problem_statement' => 'Kebutuhan robot evakuasi mandiri di area bencana sempit.',
+            'target_outcome' => 'Juara 1 KRI Regional & Prototipe Handal.',
+            'start_date' => now()->toDateString(),
+        ]);
+
+        $project = Project::where('mode', 'competition')->first();
+        $this->assertNotNull($project);
+        $this->assertEquals('Inovasi Robot SAR - Kontes Robot Indonesia 2026', $project->title);
+        $this->assertEquals('Fase 1: Analisis Panduan & Gagasan Lomba', $project->phases->first()->name);
+        $response->assertRedirect(route('projects.show', $project->id));
+    }
+
+    public function test_user_can_crud_ideas_including_competition(): void
+    {
+        $user = User::factory()->create();
+
+        // Create
+        $response = $this->actingAs($user)->post(route('ideas.store'), [
+            'title' => 'Ide Robot Detektor Korban Gempa',
+            'content' => 'Gunakan sensor thermal dan LiDAR mini.',
+            'category_tag' => 'Robotics',
+            'suggested_mode' => 'competition',
+        ]);
+
+        $response->assertSessionHas('success');
+        $this->assertDatabaseHas('ideas', [
+            'title' => 'Ide Robot Detektor Korban Gempa',
+            'suggested_mode' => 'competition',
+        ]);
+
+        $idea = Idea::where('title', 'Ide Robot Detektor Korban Gempa')->first();
+
+        // Update
+        $updateResponse = $this->actingAs($user)->put(route('ideas.update', $idea->id), [
+            'title' => 'Ide Robot Detektor Korban Gempa (Revisi)',
+            'content' => 'Gunakan sensor thermal dan LiDAR mini + AI vision.',
+            'category_tag' => 'Robotics AI',
+            'suggested_mode' => 'competition',
+            'status' => 'draft',
+        ]);
+        $updateResponse->assertSessionHas('success');
+        $this->assertDatabaseHas('ideas', [
+            'id' => $idea->id,
+            'title' => 'Ide Robot Detektor Korban Gempa (Revisi)',
+        ]);
+
+        // Delete
+        $deleteResponse = $this->actingAs($user)->delete(route('ideas.destroy', $idea->id));
+        $deleteResponse->assertSessionHas('success');
+        $this->assertDatabaseMissing('ideas', ['id' => $idea->id]);
+    }
+
+    public function test_user_can_manage_phases_and_expenses(): void
+    {
+        $user = User::factory()->create();
+        $project = Project::create([
+            'user_id' => $user->id,
+            'title' => 'Proyek Test CRUD',
+            'mode' => 'research',
+            'status' => 'active',
+        ]);
+
+        // Phase Create
+        $this->actingAs($user)->post(route('phases.store', $project->id), [
+            'name' => 'Fase 2: Eksperimen',
+        ]);
+        $phase = Phase::where('name', 'Fase 2: Eksperimen')->first();
+        $this->assertNotNull($phase);
+
+        // Phase Update
+        $this->actingAs($user)->put(route('phases.update', $phase->id), [
+            'name' => 'Fase 2: Eksperimen & Validasi',
+        ]);
+        $this->assertDatabaseHas('phases', ['id' => $phase->id, 'name' => 'Fase 2: Eksperimen & Validasi']);
+
+        // Expense Create & Update
+        $this->actingAs($user)->post(route('budget.expenses.store', $project->id), [
+            'date' => now()->toDateString(),
+            'description' => 'Beli sensor',
+            'category' => 'Alat & Bahan',
+            'amount' => 150000,
+        ]);
+        $expense = Expense::where('description', 'Beli sensor')->first();
+        $this->assertNotNull($expense);
+
+        $this->actingAs($user)->put(route('budget.expenses.update', $expense->id), [
+            'date' => now()->toDateString(),
+            'description' => 'Beli sensor ultrasonic (Updated)',
+            'category' => 'Alat & Bahan',
+            'amount' => 175000,
+        ]);
+        $this->assertDatabaseHas('expenses', ['id' => $expense->id, 'amount' => 175000]);
+
+        // Delete Phase
+        $this->actingAs($user)->delete(route('phases.destroy', $phase->id));
+        $this->assertDatabaseMissing('phases', ['id' => $phase->id]);
     }
 }
