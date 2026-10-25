@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Mode Offline - TERA R&D Workspace</title>
+    <meta name="theme-color" content="#059669">
+    <link rel="icon" type="image/svg+xml" href="/icons/icon.svg">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        body {
+            background-color: #f8fafc;
+            color: #0f172a;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+        }
+        .card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 1.5rem;
+            padding: 2.5rem 2rem;
+            max-width: 440px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.03);
+        }
+        .icon-wrapper {
+            width: 4rem;
+            height: 4rem;
+            background: #ecfdf5;
+            color: #059669;
+            border-radius: 1rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+        }
+        .icon-wrapper svg {
+            width: 2rem;
+            height: 2rem;
+            stroke-width: 2;
+        }
+        h1 {
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
+        }
+        p {
+            font-size: 0.875rem;
+            color: #64748b;
+            line-height: 1.6;
+            margin-bottom: 1.75rem;
+        }
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.75rem;
+            background: #f1f5f9;
+            color: #475569;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border-radius: 9999px;
+            margin-bottom: 1rem;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            padding: 0.85rem 1.25rem;
+            background-color: #059669;
+            color: #ffffff;
+            font-size: 0.875rem;
+            font-weight: 700;
+            border: none;
+            border-radius: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            box-shadow: 0 2px 4px rgba(5, 150, 105, 0.2);
+        }
+        .btn:hover {
+            background-color: #047857;
+            transform: translateY(-1px);
+        }
+        .btn:active {
+            transform: scale(0.98);
+        }
+        .footer-note {
+            margin-top: 1.25rem;
+            font-size: 0.75rem;
+            color: #94a3b8;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="icon-wrapper">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <line x1="1" y1="1" x2="23" y2="23"></line>
+                <path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"></path>
+                <path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"></path>
+                <path d="M10.71 5.05A16 16 0 0 1 22.58 9"></path>
+                <path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"></path>
+                <path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path>
+                <line x1="12" y1="20" x2="12.01" y2="20"></line>
+            </svg>
+        </div>
+        <div class="badge">TERA R&D Workspace</div>
+        <h1>Anda Sedang Offline</h1>
+        <p>Koneksi internet Anda sedang terputus. Aplikasi tetap aman, silakan periksa sambungan WiFi atau kuota data Anda.</p>
+        <button class="btn" onclick="window.location.reload()">Coba Muat Ulang</button>
+        <div class="footer-note">Halaman akan otomatis dimuat ulang saat koneksi kembali.</div>
+    </div>
+
+    <script>
+        window.addEventListener('online', function() {
+            window.location.reload();
+        });
+    </script>
+</body>
+</html>
