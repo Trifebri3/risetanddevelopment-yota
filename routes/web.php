@@ -8,8 +8,11 @@ use App\Http\Controllers\OutputController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ProjectMemberController;
+use App\Http\Controllers\ProjectMetricController;
 use App\Http\Controllers\PublicProjectController;
 use App\Http\Controllers\TaskController;
+use App\Http\Controllers\TaskDetailController;
+use App\Http\Controllers\WorkflowTemplateController;
 use App\Models\Project;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -69,6 +72,26 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('/tasks/{task}', [TaskController::class, 'updateTask'])->name('tasks.update');
     Route::post('/tasks/{task}/toggle', [TaskController::class, 'toggleTaskStatus'])->name('tasks.toggle');
     Route::delete('/tasks/{task}', [TaskController::class, 'destroyTask'])->name('tasks.destroy');
+
+    // Priority 1 — Task Detail Engine (Instruksi, Acceptance Criteria, Lampiran Ref vs Deliverable, Reviews)
+    Route::get('/tasks/{task}/detail', [TaskDetailController::class, 'show'])->name('tasks.detail.show');
+    Route::put('/tasks/{task}/detail', [TaskDetailController::class, 'update'])->name('tasks.detail.update');
+    Route::post('/tasks/{task}/checklists', [TaskDetailController::class, 'storeChecklist'])->name('tasks.checklists.store');
+    Route::post('/checklists/{checklist}/toggle', [TaskDetailController::class, 'toggleChecklist'])->name('checklists.toggle');
+    Route::delete('/checklists/{checklist}', [TaskDetailController::class, 'destroyChecklist'])->name('checklists.destroy');
+    Route::post('/tasks/{task}/attachments', [TaskDetailController::class, 'storeAttachment'])->name('tasks.attachments.store');
+    Route::delete('/attachments/{attachment}', [TaskDetailController::class, 'destroyAttachment'])->name('attachments.destroy');
+    Route::post('/tasks/{task}/reviews', [TaskDetailController::class, 'storeReview'])->name('tasks.reviews.store');
+    Route::post('/tasks/{task}/comments', [TaskDetailController::class, 'storeComment'])->name('tasks.comments.store');
+
+    // Priority 2 & 5 — Project Outcome Metrics
+    Route::post('/projects/{project}/metrics', [ProjectMetricController::class, 'store'])->name('projects.metrics.store');
+    Route::put('/metrics/{metric}', [ProjectMetricController::class, 'update'])->name('metrics.update');
+    Route::delete('/metrics/{metric}', [ProjectMetricController::class, 'destroy'])->name('metrics.destroy');
+
+    // Priority 3 & 4 — Workflow Templates & Modular Methodology
+    Route::get('/workflow-templates', [WorkflowTemplateController::class, 'index'])->name('workflow.templates.index');
+    Route::post('/projects/{project}/apply-template', [WorkflowTemplateController::class, 'applyToProject'])->name('projects.apply_template');
 
     // Auto-Logbook & Development Journal
     Route::post('/projects/{project}/journal', [JournalEntryController::class, 'store'])->name('journal.store');

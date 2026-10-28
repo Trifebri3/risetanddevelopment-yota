@@ -18,12 +18,16 @@ class Project extends Model
         'slug',
         'description',
         'mode',
+        'workflow_template_id',
         'problem_statement',
         'target_outcome',
         'status',
         'start_date',
         'end_date',
         'progress_percent',
+        'task_progress_percent',
+        'milestone_progress_percent',
+        'outcome_progress_percent',
         'share_token',
         'team_invite_token',
         'is_public',
@@ -36,6 +40,9 @@ class Project extends Model
         'start_date' => 'date:Y-m-d',
         'end_date' => 'date:Y-m-d',
         'progress_percent' => 'integer',
+        'task_progress_percent' => 'integer',
+        'milestone_progress_percent' => 'integer',
+        'outcome_progress_percent' => 'integer',
     ];
 
     protected static function boot()
@@ -167,21 +174,48 @@ class Project extends Model
             ->exists();
     }
 
+    public function workflowTemplate(): BelongsTo
+    {
+        return $this->belongsTo(WorkflowTemplate::class);
+    }
+
+    public function metrics(): HasMany
+    {
+        return $this->hasMany(ProjectMetric::class)->orderBy('id');
+    }
+
     public function recalculateProgress(): void
     {
-        $totalWeight = $this->tasks()->sum('weight');
+        // 1. Task progress (weighted)
+        $totalWeight = (int) $this->tasks()->sum('weight');
         if ($totalWeight > 0) {
-            $doneWeight = $this->tasks()->where('status', 'done')->sum('weight');
-            $this->progress_percent = (int) round(($doneWeight / $totalWeight) * 100);
+            $doneWeight = (int) $this->tasks()->where('status', 'done')->sum('weight');
+            $this->task_progress_percent = (int) round(($doneWeight / $totalWeight) * 100);
         } else {
-            $totalMilestones = $this->milestones()->count();
-            if ($totalMilestones > 0) {
-                $doneMilestones = $this->milestones()->where('status', 'completed')->count();
-                $this->progress_percent = (int) round(($doneMilestones / $totalMilestones) * 100);
-            } else {
-                $this->progress_percent = 0;
-            }
+            $this->task_progress_percent = 0;
         }
+
+        // 2. Milestone progress (verified completion)
+        $totalMilestones = $this->milestones()->count();
+        if ($totalMilestones > 0) {
+            $doneMilestones = $this->milestones()->where('status', 'completed')->count();
+            $this->milestone_progress_percent = (int) round(($doneMilestones / $totalMilestones) * 100);
+        } else {
+            $this->milestone_progress_percent = 0;
+        }
+
+        // 3. Outcome progress (metrics achieved)
+        $totalMetrics = $this->metrics()->count();
+        if ($totalMetrics > 0) {
+            $achievedMetrics = $this->metrics()->where('status', 'achieved')->count();
+            $this->outcome_progress_percent = (int) round(($achievedMetrics / $totalMetrics) * 100);
+        } else {
+            $this->outcome_progress_percent = 0;
+        }
+
+        // Composite overall progress (defaults to task progress if present, or milestone progress)
+        $this->progress_percent = $totalWeight > 0 ? $this->task_progress_percent : $this->milestone_progress_percent;
+
         $this->saveQuietly();
     }
 }

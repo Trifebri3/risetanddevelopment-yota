@@ -3,15 +3,34 @@ import { ref, computed } from 'vue';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import AppIcon from '@/Components/AppIcon.vue';
 import { Head, Link, useForm, router } from '@inertiajs/vue3';
+import TaskDetailDrawer from '@/Components/Projects/TaskDetailDrawer.vue';
+import InteractiveRoadmap from '@/Components/Projects/InteractiveRoadmap.vue';
+import ProjectProgressMetrics from '@/Components/Projects/ProjectProgressMetrics.vue';
+import TemplateSelectorModal from '@/Components/Projects/TemplateSelectorModal.vue';
 
 const props = defineProps({
     project: Object,
     budgetSummary: Object,
     isOwner: Boolean,
     teamInviteUrl: String,
+    availableTemplates: Array,
 });
 
 const activeTab = ref('overview'); // 'overview', 'roadmap', 'journal', 'budget', 'outputs', 'team', 'share'
+
+// Modular Methodology & Task Engine State
+const isTaskDrawerOpen = ref(false);
+const selectedTaskId = ref(null);
+const isTemplateSelectorOpen = ref(false);
+
+const openTaskDetail = (task) => {
+    selectedTaskId.value = task.id;
+    isTaskDrawerOpen.value = true;
+};
+
+const handleTaskUpdated = () => {
+    router.reload({ preserveScroll: true });
+};
 
 // Modals State (Create & Edit)
 const isProjectModalOpen = ref(false);
@@ -750,6 +769,9 @@ const regenerateTeamInvite = () => {
                 <!-- TAB 1: OVERVIEW & RINGKASAN                                     -->
                 <!-- ============================================================== -->
                 <div v-if="activeTab === 'overview'" class="space-y-6">
+                    <!-- 3-Tier Modular Progress & Outcome Metrics -->
+                    <ProjectProgressMetrics :project="project" :is-owner="isOwner" />
+
                     <div class="flex items-center justify-between">
                         <div>
                             <h2 class="text-base sm:text-lg font-bold text-slate-900">Ringkasan & Informasi Proyek</h2>
@@ -882,170 +904,51 @@ const regenerateTeamInvite = () => {
                 <!-- TAB 2: ROADMAP, FASE & TUGAS                                   -->
                 <!-- ============================================================== -->
                 <div v-if="activeTab === 'roadmap'" class="space-y-6">
-                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                        <div>
-                            <h2 class="text-base sm:text-lg font-bold text-slate-900">Roadmap, Fase & Daftar Tugas</h2>
-                            <p class="text-xs text-slate-500 mt-0.5">Kelola target milestone dan centang tugas harian untuk memperbarui progres otomatis.</p>
-                        </div>
-                        <div class="flex flex-wrap items-center gap-2">
-                            <button
-                                @click="isPhaseModalOpen = true"
-                                class="flex-1 sm:flex-none px-3.5 py-2 text-xs font-semibold rounded-xl bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 shadow-xs flex items-center justify-center active:scale-95"
-                            >
-                                <AppIcon name="layers" :size="13" class="mr-1.5" />
-                                <span>+ Fase Baru</span>
-                            </button>
-                            <button
-                                @click="isMilestoneModalOpen = true"
-                                class="flex-1 sm:flex-none px-3.5 py-2 text-xs font-semibold rounded-xl bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 shadow-xs flex items-center justify-center active:scale-95"
-                            >
-                                <AppIcon name="target" :size="13" class="mr-1.5" />
-                                <span>+ Milestone Baru</span>
-                            </button>
-                            <button
-                                @click="isTaskModalOpen = true"
-                                class="flex-1 sm:flex-none px-3.5 py-2 text-xs font-bold rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 shadow-xs flex items-center justify-center active:scale-95"
-                            >
-                                <AppIcon name="plus" :size="13" class="mr-1.5" />
-                                <span>+ Tugas Baru</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Milestones and Tasks by Phase -->
-                    <div class="space-y-6">
-                        <div
-                            v-for="phase in project.phases"
-                            :key="phase.id"
-                            class="bg-white rounded-2xl sm:rounded-3xl border border-slate-200/80 p-5 sm:p-6 shadow-xs space-y-4"
-                        >
-                            <!-- Phase Header with Edit and Delete Buttons -->
-                            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-                                <h3 class="text-sm sm:text-base font-bold text-slate-900 flex items-center">
-                                    <span class="w-6 h-6 rounded-lg bg-emerald-50 text-emerald-800 flex items-center justify-center text-xs font-extrabold mr-2.5 border border-emerald-200">
-                                        {{ phase.order }}
+                    <!-- Modular Methodology Active Banner -->
+                    <div class="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-gradient-to-r from-emerald-50/90 via-white to-emerald-50/40 border border-emerald-200/90 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 shadow-xs">
+                        <div class="flex items-center space-x-3.5">
+                            <span class="w-10 h-10 rounded-2xl bg-emerald-600 text-white flex items-center justify-center font-bold text-xs shadow-xs shrink-0">
+                                <AppIcon name="layers" :size="18" />
+                            </span>
+                            <div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-xs sm:text-sm font-extrabold text-slate-900">
+                                        Metodologi: {{ project.workflow_template?.name || getModeInfo(project.mode).label }}
                                     </span>
-                                    <span>{{ phase.name }}</span>
-                                </h3>
-
-                                <div class="flex items-center space-x-1 text-xs">
-                                    <button
-                                        @click="openEditPhaseModal(phase)"
-                                        class="px-2.5 py-1 text-slate-500 hover:text-emerald-700 hover:bg-slate-50 rounded-lg font-medium transition-colors"
-                                        title="Ubah nama fase"
-                                    >
-                                        Edit
-                                    </button>
-                                    <button
-                                        @click="deletePhase(phase)"
-                                        class="px-2 py-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
-                                        title="Hapus fase"
-                                    >
-                                        <AppIcon name="trash" :size="13" />
-                                    </button>
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-emerald-100 text-emerald-800 border border-emerald-200">
+                                        Modular
+                                    </span>
                                 </div>
-                            </div>
-
-                            <!-- Milestones in this phase -->
-                            <div v-if="project.milestones.filter(m => m.phase_id === phase.id).length === 0" class="text-xs text-slate-400 py-2">
-                                Belum ada milestone pada fase ini.
-                            </div>
-                            <div
-                                v-for="milestone in project.milestones.filter(m => m.phase_id === phase.id)"
-                                :key="milestone.id"
-                                class="p-4 rounded-2xl bg-slate-50/70 border border-slate-200/60 space-y-3"
-                            >
-                                <div class="flex items-start justify-between gap-3">
-                                    <div class="flex items-start space-x-3">
-                                        <button
-                                            @click="completeMilestone(milestone)"
-                                            :class="milestone.status === 'completed' ? 'bg-emerald-600 text-white' : 'border-2 border-slate-300 bg-white'"
-                                            class="w-6 h-6 rounded-lg flex items-center justify-center mt-0.5 hover:border-emerald-600 transition-colors shrink-0"
-                                            title="Tandai Milestone Selesai"
-                                        >
-                                            <AppIcon v-if="milestone.status === 'completed'" name="check" :size="13" />
-                                        </button>
-                                        <div>
-                                            <h4
-                                                :class="milestone.status === 'completed' ? 'line-through text-slate-400' : 'text-slate-900'"
-                                                class="text-xs sm:text-sm font-bold"
-                                            >
-                                                {{ milestone.title }}
-                                            </h4>
-                                            <p v-if="milestone.definition_of_done" class="text-xs text-slate-500 mt-0.5">
-                                                Definisi Selesai: {{ milestone.definition_of_done }}
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    <div class="flex items-center space-x-2 shrink-0 text-xs">
-                                        <span class="text-[11px] font-semibold px-2 py-0.5 rounded bg-slate-200 text-slate-700">
-                                            {{ milestone.due_date ? new Date(milestone.due_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }) : 'No date' }}
-                                        </span>
-                                        <button
-                                            @click="openEditMilestoneModal(milestone)"
-                                            class="text-slate-400 hover:text-emerald-700 p-1 rounded hover:bg-slate-200"
-                                            title="Edit milestone"
-                                        >
-                                            <AppIcon name="file-text" :size="13" />
-                                        </button>
-                                        <button
-                                            @click="deleteMilestone(milestone)"
-                                            class="text-slate-300 hover:text-rose-600 p-1 rounded hover:bg-rose-50"
-                                            title="Hapus milestone"
-                                        >
-                                            <AppIcon name="trash" :size="13" />
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <!-- Tasks attached to milestone -->
-                                <div class="pl-4 sm:pl-8 pt-2 space-y-2 border-t border-slate-200/40">
-                                    <div
-                                        v-for="task in project.tasks.filter(t => t.milestone_id === milestone.id)"
-                                        :key="task.id"
-                                        class="flex items-center justify-between p-3 rounded-xl bg-white border border-slate-200/60 hover:border-emerald-300 transition-colors"
-                                    >
-                                        <div class="flex items-center space-x-3 flex-1 min-w-0 pr-2">
-                                            <button
-                                                @click="toggleTask(task)"
-                                                :class="task.status === 'done' ? 'bg-emerald-600 text-white' : 'border-2 border-slate-300 bg-white hover:border-emerald-600'"
-                                                class="w-6 h-6 rounded-lg flex items-center justify-center shrink-0 transition-all cursor-pointer active:scale-95"
-                                                title="Centang tugas"
-                                            >
-                                                <AppIcon v-if="task.status === 'done'" name="check" :size="13" />
-                                            </button>
-                                            <span
-                                                :class="task.status === 'done' ? 'line-through text-slate-400' : 'text-slate-800'"
-                                                class="text-xs font-medium truncate"
-                                            >
-                                                {{ task.title }}
-                                            </span>
-                                        </div>
-                                        <div class="flex items-center space-x-2 text-xs shrink-0">
-                                            <span class="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700">
-                                                {{ task.priority }}
-                                            </span>
-                                            <button
-                                                @click="openEditTaskModal(task)"
-                                                class="text-slate-400 hover:text-emerald-700 p-1 rounded hover:bg-slate-100"
-                                                title="Edit tugas"
-                                            >
-                                                <AppIcon name="file-text" :size="13" />
-                                            </button>
-                                            <button
-                                                @click="deleteTask(task)"
-                                                class="text-slate-300 hover:text-rose-600 p-1 rounded hover:bg-rose-50"
-                                                title="Hapus tugas"
-                                            >
-                                                <AppIcon name="trash" :size="13" />
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
+                                <p class="text-xs text-slate-600 mt-0.5">
+                                    {{ project.workflow_template?.framework || 'Alur kerja modular dengan tahapan terstruktur & tugas berpanduan operasional.' }}
+                                </p>
                             </div>
                         </div>
+
+                        <button
+                            v-if="isOwner"
+                            @click="isTemplateSelectorOpen = true"
+                            class="px-4 py-2 text-xs font-bold rounded-xl bg-white border border-emerald-300 text-emerald-800 hover:bg-emerald-50 shadow-xs flex items-center space-x-1.5 self-start sm:self-auto shrink-0 transition-all active:scale-95"
+                        >
+                            <AppIcon name="layers" :size="13" />
+                            <span>Katalog & Ganti Metodologi</span>
+                        </button>
                     </div>
+
+                    <!-- Interactive Hierarchical Roadmap Component -->
+                    <InteractiveRoadmap
+                        :project="project"
+                        :is-owner="isOwner"
+                        @open-task-detail="openTaskDetail"
+                        @open-create-phase="isPhaseModalOpen = true"
+                        @open-create-milestone="(phaseId) => { milestoneForm.phase_id = phaseId || ''; isMilestoneModalOpen = true; }"
+                        @open-create-task="(milestoneId) => { taskForm.milestone_id = milestoneId || ''; isTaskModalOpen = true; }"
+                        @edit-phase="openEditPhaseModal"
+                        @delete-phase="deletePhase"
+                        @edit-milestone="openEditMilestoneModal"
+                        @delete-milestone="deleteMilestone"
+                        @delete-task="deleteTask"
+                    />
                 </div>
 
                 <!-- ============================================================== -->
@@ -2534,5 +2437,22 @@ const regenerateTeamInvite = () => {
                 </form>
             </div>
         </div>
+
+        <!-- Priority 1 — Task Detail Drawer Engine -->
+        <TaskDetailDrawer
+            :is-open="isTaskDrawerOpen"
+            :task-id="selectedTaskId"
+            :project="project"
+            @close="isTaskDrawerOpen = false"
+            @task-updated="handleTaskUpdated"
+        />
+
+        <!-- Priority 3 & 4 — Workflow Methodology Template Selector Modal -->
+        <TemplateSelectorModal
+            :is-open="isTemplateSelectorOpen"
+            :project="project"
+            :available-templates="availableTemplates"
+            @close="isTemplateSelectorOpen = false"
+        />
     </AuthenticatedLayout>
 </template>

@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Phase;
 use App\Models\Project;
+use App\Models\WorkflowTemplate;
+use App\Services\WorkflowTemplateService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -12,6 +14,10 @@ use Inertia\Response;
 
 class ProjectController extends Controller
 {
+    public function __construct(
+        protected WorkflowTemplateService $workflowTemplateService
+    ) {}
+
     public function index(Request $request): Response
     {
         $user = $request->user();
@@ -74,6 +80,7 @@ class ProjectController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'mode' => 'required|in:research,product,social,competition',
+            'workflow_template_id' => 'nullable|exists:workflow_templates,id',
             'description' => 'nullable|string',
             'problem_statement' => 'nullable|string',
             'target_outcome' => 'nullable|string',
@@ -85,6 +92,7 @@ class ProjectController extends Controller
             'user_id' => $request->user()->id,
             'title' => $validated['title'],
             'mode' => $validated['mode'],
+            'workflow_template_id' => $validated['workflow_template_id'] ?? null,
             'description' => $validated['description'] ?? null,
             'problem_statement' => $validated['problem_statement'] ?? null,
             'target_outcome' => $validated['target_outcome'] ?? null,
@@ -104,23 +112,36 @@ class ProjectController extends Controller
             ],
         ]);
 
-        // Create initial default phase
-        $phaseName = match ($project->mode) {
-            'research' => 'Fase 1: Eksplorasi Teori & Tinjauan Pustaka',
-            'product' => 'Fase 1: Validasi Kebutuhan & Desain Awal',
-            'social' => 'Fase 1: Pemetaan Masalah & Stakeholder Lapangan',
-            'competition' => 'Fase 1: Analisis Panduan & Gagasan Lomba',
-            default => 'Fase 1: Perencanaan & Inisiasi',
-        };
+        // Find selected template or default template for this mode
+        $template = null;
+        if (! empty($validated['workflow_template_id'])) {
+            $template = WorkflowTemplate::find($validated['workflow_template_id']);
+        }
+        if (! $template) {
+            $template = WorkflowTemplate::where('category', $project->mode)->where('is_default', true)->first()
+                ?? WorkflowTemplate::where('category', $project->mode)->first();
+        }
 
-        Phase::create([
-            'project_id' => $project->id,
-            'name' => $phaseName,
-            'order' => 1,
-        ]);
+        if ($template) {
+            $this->workflowTemplateService->applyTemplateToProject($project, $template);
+        } else {
+            $phaseName = match ($project->mode) {
+                'research' => 'Fase 1: Eksplorasi Teori & Tinjauan Pustaka',
+                'product' => 'Fase 1: Validasi Kebutuhan & Desain Awal',
+                'social' => 'Fase 1: Pemetaan Masalah & Stakeholder Lapangan',
+                'competition' => 'Fase 1: Analisis Panduan & Gagasan Lomba',
+                default => 'Fase 1: Perencanaan & Inisiasi',
+            };
+
+            Phase::create([
+                'project_id' => $project->id,
+                'name' => $phaseName,
+                'order' => 1,
+            ]);
+        }
 
         return redirect()->route('projects.show', $project)
-            ->with('success', 'Proyek berhasil dibuat!');
+            ->with('success', 'Proyek berhasil dibuat dengan template metodologi operasional!');
     }
 
     public function show(Request $request, Project $project): Response|RedirectResponse
@@ -139,9 +160,17 @@ class ProjectController extends Controller
 
         $project->load([
             'user',
-            'phases.milestones.tasks',
-            'milestones.tasks',
-            'tasks',
+            'workflowTemplate.stages.templateTasks',
+            'metrics',
+            'phases.milestones.tasks.assignedUser',
+            'phases.milestones.tasks.checklists',
+            'phases.milestones.tasks.attachments',
+            'phases.milestones.tasks.reviews.user',
+            'phases.milestones.tasks.comments.user',
+            'milestones.tasks.assignedUser',
+            'milestones.tasks.checklists',
+            'tasks.assignedUser',
+            'tasks.checklists',
             'journalEntries',
             'budgetItems.expenses',
             'expenses',
@@ -149,6 +178,8 @@ class ProjectController extends Controller
             'feedbacks',
             'members.user',
         ]);
+
+        $availableTemplates = WorkflowTemplate::with('stages')->get();
 
         $totalEstimatedBudget = (float) $project->budgetItems->sum('total_estimated_price');
         $totalActualExpense = (float) $project->expenses->sum('amount');
@@ -158,6 +189,7 @@ class ProjectController extends Controller
             'project' => $project,
             'isOwner' => $project->isOwner($request->user()),
             'teamInviteUrl' => route('projects.join', $project->team_invite_token),
+            'availableTemplates' => $availableTemplates,
             'budgetSummary' => [
                 'total_estimated' => $totalEstimatedBudget,
                 'total_actual' => $totalActualExpense,
