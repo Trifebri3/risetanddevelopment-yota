@@ -107,19 +107,33 @@ const confirmDeleteProject = () => {
 };
 
 // Filtered projects computed
+const selectedCategoryFilter = ref('all'); // 'all', 'research', 'product', 'social', 'competition'
+
+const toggleCategoryFilter = (category) => {
+    if (selectedCategoryFilter.value === category) {
+        selectedCategoryFilter.value = 'all';
+    } else {
+        selectedCategoryFilter.value = category;
+    }
+};
+
 const filteredProjects = computed(() => {
-    const list = props.projects || [];
+    let list = props.projects || [];
     switch (dashboardFilter.value) {
         case 'active':
-            return list.filter(p => p.status === 'active');
+            list = list.filter(p => p.status === 'active');
+            break;
         case 'completed':
-            return list.filter(p => p.status === 'completed');
+            list = list.filter(p => p.status === 'completed');
+            break;
         case 'pinned':
-            return list.filter(p => p.is_pinned);
-        case 'all':
-        default:
-            return list;
+            list = list.filter(p => p.is_pinned);
+            break;
     }
+    if (selectedCategoryFilter.value !== 'all') {
+        list = list.filter(p => p.mode === selectedCategoryFilter.value);
+    }
+    return list;
 });
 
 // Strict 2-Color Palette: Emerald + Slate
@@ -291,6 +305,133 @@ const getStatusBadge = (status) => {
                         <div class="mt-2 text-xs text-slate-500 truncate">
                             Terkontrol dan transparan.
                         </div>
+                    </div>
+                </div>
+
+                <!-- Statistik Kategori & Pipeline Inovasi (Riset, Produk, Sosial, Lomba, Ide) -->
+                <div class="bg-white rounded-2xl sm:rounded-3xl border border-slate-200/80 p-5 sm:p-6 shadow-xs space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h2 class="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2">
+                                <AppIcon name="layers" :size="16" class="text-emerald-700" />
+                                <span>Distribusi Inovasi: Riset, Produk, Sosial, Lomba & Ide</span>
+                            </h2>
+                            <p class="text-xs text-slate-500">Statistik pipeline ekosistem R&D berdasarkan kategori proyek dan ide.</p>
+                        </div>
+                        <Link
+                            :href="route('projects.index')"
+                            class="text-xs font-bold text-emerald-700 hover:text-emerald-900 hidden sm:flex items-center gap-1"
+                        >
+                            <span>Semua Proyek</span>
+                            <AppIcon name="arrow-right" :size="12" />
+                        </Link>
+                    </div>
+
+                    <!-- 5 Category Metric Cards Grid -->
+                    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+                        <!-- 1. Riset Ilmiah (Research Dev) -->
+                        <div
+                            @click="toggleCategoryFilter('research')"
+                            :class="selectedCategoryFilter === 'research' ? 'border-emerald-600 bg-emerald-100/70 ring-2 ring-emerald-500/30 shadow-xs' : 'border-emerald-200/80 bg-emerald-50/50 hover:bg-emerald-50 hover:border-emerald-300'"
+                            class="p-4 rounded-2xl border transition-all cursor-pointer group flex flex-col justify-between"
+                        >
+                            <div class="flex items-center justify-between">
+                                <span class="text-2xs font-extrabold uppercase tracking-wider text-emerald-800">Riset Ilmiah</span>
+                                <div class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center">
+                                    <AppIcon name="research" :size="14" />
+                                </div>
+                            </div>
+                            <div class="mt-3">
+                                <div class="text-2xl font-black text-emerald-950">{{ stats.research_projects ?? 0 }}</div>
+                                <span class="text-2xs text-emerald-700 font-medium">Proyek Riset</span>
+                            </div>
+                        </div>
+
+                        <!-- 2. Produk & MVP (Product Dev) -->
+                        <div
+                            @click="toggleCategoryFilter('product')"
+                            :class="selectedCategoryFilter === 'product' ? 'border-blue-600 bg-blue-100/70 ring-2 ring-blue-500/30 shadow-xs' : 'border-blue-200/80 bg-blue-50/50 hover:bg-blue-50 hover:border-blue-300'"
+                            class="p-4 rounded-2xl border transition-all cursor-pointer group flex flex-col justify-between"
+                        >
+                            <div class="flex items-center justify-between">
+                                <span class="text-2xs font-extrabold uppercase tracking-wider text-blue-800">Produk & MVP</span>
+                                <div class="w-7 h-7 rounded-lg bg-blue-100 text-blue-800 flex items-center justify-center">
+                                    <AppIcon name="product" :size="14" />
+                                </div>
+                            </div>
+                            <div class="mt-3">
+                                <div class="text-2xl font-black text-blue-950">{{ stats.product_projects ?? 0 }}</div>
+                                <span class="text-2xs text-blue-700 font-medium">Pengembangan Produk</span>
+                            </div>
+                        </div>
+
+                        <!-- 3. Sosial & Komunitas -->
+                        <div
+                            @click="toggleCategoryFilter('social')"
+                            :class="selectedCategoryFilter === 'social' ? 'border-teal-600 bg-teal-100/70 ring-2 ring-teal-500/30 shadow-xs' : 'border-teal-200/80 bg-teal-50/50 hover:bg-teal-50 hover:border-teal-300'"
+                            class="p-4 rounded-2xl border transition-all cursor-pointer group flex flex-col justify-between"
+                        >
+                            <div class="flex items-center justify-between">
+                                <span class="text-2xs font-extrabold uppercase tracking-wider text-teal-800">Proyek Sosial</span>
+                                <div class="w-7 h-7 rounded-lg bg-teal-100 text-teal-800 flex items-center justify-center">
+                                    <AppIcon name="social" :size="14" />
+                                </div>
+                            </div>
+                            <div class="mt-3">
+                                <div class="text-2xl font-black text-teal-950">{{ stats.social_projects ?? 0 }}</div>
+                                <span class="text-2xs text-teal-700 font-medium">Dampak Komunitas</span>
+                            </div>
+                        </div>
+
+                        <!-- 4. Lomba & Kompetisi -->
+                        <div
+                            @click="toggleCategoryFilter('competition')"
+                            :class="selectedCategoryFilter === 'competition' ? 'border-amber-600 bg-amber-100/70 ring-2 ring-amber-500/30 shadow-xs' : 'border-amber-200/80 bg-amber-50/50 hover:bg-amber-50 hover:border-amber-300'"
+                            class="p-4 rounded-2xl border transition-all cursor-pointer group flex flex-col justify-between"
+                        >
+                            <div class="flex items-center justify-between">
+                                <span class="text-2xs font-extrabold uppercase tracking-wider text-amber-800">Lomba & Hibah</span>
+                                <div class="w-7 h-7 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center">
+                                    <AppIcon name="competition" :size="14" />
+                                </div>
+                            </div>
+                            <div class="mt-3">
+                                <div class="text-2xl font-black text-amber-950">{{ stats.competition_projects ?? 0 }}</div>
+                                <span class="text-2xs text-amber-700 font-medium">Kompetisi & Prestasi</span>
+                            </div>
+                        </div>
+
+                        <!-- 5. Taman Ide -->
+                        <Link
+                            :href="route('ideas.index')"
+                            class="p-4 rounded-2xl bg-purple-50/50 border border-purple-200/80 hover:bg-purple-50 hover:border-purple-300 transition-all group flex flex-col justify-between col-span-2 sm:col-span-1"
+                        >
+                            <div class="flex items-center justify-between">
+                                <span class="text-2xs font-extrabold uppercase tracking-wider text-purple-800">Taman Ide</span>
+                                <div class="w-7 h-7 rounded-lg bg-purple-100 text-purple-800 flex items-center justify-center">
+                                    <AppIcon name="idea" :size="14" />
+                                </div>
+                            </div>
+                            <div class="mt-3">
+                                <div class="text-2xl font-black text-purple-950">{{ stats.total_ideas ?? 0 }}</div>
+                                <span class="text-2xs text-purple-700 font-medium">{{ stats.converted_ideas ?? 0 }} telah dikonversi &rarr;</span>
+                            </div>
+                        </Link>
+                    </div>
+
+                    <!-- Category Filter Reset Notification if filtered -->
+                    <div
+                        v-if="selectedCategoryFilter !== 'all'"
+                        class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between text-xs text-slate-700 animate-fade-in"
+                    >
+                        <span>Menampilkan filter kategori: <strong class="capitalize">{{ selectedCategoryFilter }}</strong></span>
+                        <button
+                            type="button"
+                            @click="selectedCategoryFilter = 'all'"
+                            class="text-xs font-bold text-rose-600 hover:text-rose-800 underline"
+                        >
+                            Reset Filter Kategori &times;
+                        </button>
                     </div>
                 </div>
 

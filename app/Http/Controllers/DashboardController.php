@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\BudgetItem;
 use App\Models\Expense;
+use App\Models\Idea;
 use App\Models\JournalEntry;
 use App\Models\Milestone;
 use App\Models\Project;
@@ -37,6 +38,12 @@ class DashboardController extends Controller
             'active_projects' => $projects->where('status', 'active')->count(),
             'completed_projects' => $projects->where('status', 'completed')->count(),
             'pinned_projects' => $projects->where('is_pinned', true)->count(),
+            'research_projects' => $projects->where('mode', 'research')->count(),
+            'product_projects' => $projects->where('mode', 'product')->count(),
+            'social_projects' => $projects->where('mode', 'social')->count(),
+            'competition_projects' => $projects->where('mode', 'competition')->count(),
+            'total_ideas' => Idea::where('user_id', $user->id)->count(),
+            'converted_ideas' => Idea::where('user_id', $user->id)->where('status', 'converted')->count(),
             'total_proposals' => $projects->filter(fn ($p) => $p->proposal !== null)->count(),
             'total_pitch_decks' => $projects->filter(fn ($p) => $p->pitchDeck !== null)->count(),
             'total_budget' => (float) BudgetItem::whereIn('project_id', $projects->pluck('id'))->sum('total_estimated_price'),

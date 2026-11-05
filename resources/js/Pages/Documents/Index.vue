@@ -419,3 +419,4 @@ const filteredProjects = computed(() => {
         </div>
     </AuthenticatedLayout>
 </template>
+

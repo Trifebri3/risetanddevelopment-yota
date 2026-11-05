@@ -1079,3 +1079,4 @@ const printProposal = () => {
         </div>
     </div>
 </template>
+

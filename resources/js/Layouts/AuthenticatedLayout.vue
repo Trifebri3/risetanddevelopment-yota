@@ -191,13 +191,13 @@ const page = usePage();
             </header>
 
             <!-- Main Content -->
-            <main>
+            <main class="pb-24 md:pb-0">
                 <slot />
             </main>
         </div>
 
         <!-- Footer -->
-        <footer class="bg-white border-t border-slate-200 py-8 text-xs text-slate-500 mt-12">
+        <footer class="bg-white border-t border-slate-200 py-8 text-xs text-slate-500 mt-12 pb-28 md:pb-8">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
                 <!-- Initiators Attribution -->
                 <div class="p-4 sm:p-5 rounded-2xl bg-slate-50 border border-slate-200/70 flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -253,5 +253,71 @@ const page = usePage();
 
         <!-- PWA Install Prompt Banner -->
         <PwaInstallPrompt />
+
+        <!-- Mobile Native App Bottom Navigation Bar (App Experience on HP) -->
+        <nav class="fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-xl border-t border-slate-200/90 shadow-2xl md:hidden px-3 py-1.5 safe-area-pb select-none">
+            <div class="flex items-center justify-around relative">
+                <!-- 1. Home / Dashboard -->
+                <Link
+                    :href="route('dashboard')"
+                    class="flex flex-col items-center justify-center py-1 px-1.5 rounded-xl text-2xs font-semibold transition-all min-w-[50px] active:scale-95"
+                    :class="route().current('dashboard') ? 'text-emerald-700 font-bold' : 'text-slate-500 hover:text-slate-800'"
+                >
+                    <div class="relative">
+                        <AppIcon name="activity" :size="20" />
+                        <span v-if="route().current('dashboard')" class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                    </div>
+                    <span class="mt-1 text-[10px] tracking-tight">Home</span>
+                </Link>
+
+                <!-- 2. Proyek -->
+                <Link
+                    :href="route('projects.index')"
+                    class="flex flex-col items-center justify-center py-1 px-1.5 rounded-xl text-2xs font-semibold transition-all min-w-[50px] active:scale-95"
+                    :class="route().current('projects.*') ? 'text-emerald-700 font-bold' : 'text-slate-500 hover:text-slate-800'"
+                >
+                    <div class="relative">
+                        <AppIcon name="folder" :size="20" />
+                        <span v-if="route().current('projects.*')" class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                    </div>
+                    <span class="mt-1 text-[10px] tracking-tight">Proyek</span>
+                </Link>
+
+                <!-- 3. Elevated Floating Action Button (FAB): + Buat Proyek -->
+                <Link
+                    :href="route('projects.index', { create: 'true' })"
+                    class="-mt-6 w-13 h-13 rounded-full bg-gradient-to-tr from-emerald-700 to-emerald-500 hover:from-emerald-800 hover:to-emerald-600 text-white shadow-xl flex items-center justify-center ring-4 ring-white active:scale-90 transition-all shrink-0"
+                    title="Buat Proyek Baru"
+                >
+                    <AppIcon name="plus" :size="24" :stroke-width="2.5" />
+                </Link>
+
+                <!-- 4. Taman Ide -->
+                <Link
+                    :href="route('ideas.index')"
+                    class="flex flex-col items-center justify-center py-1 px-1.5 rounded-xl text-2xs font-semibold transition-all min-w-[50px] active:scale-95"
+                    :class="route().current('ideas.*') ? 'text-emerald-700 font-bold' : 'text-slate-500 hover:text-slate-800'"
+                >
+                    <div class="relative">
+                        <AppIcon name="idea" :size="20" />
+                        <span v-if="route().current('ideas.*')" class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                    </div>
+                    <span class="mt-1 text-[10px] tracking-tight">Ide</span>
+                </Link>
+
+                <!-- 5. Proposal & Pitch Deck -->
+                <Link
+                    :href="route('documents.index')"
+                    class="flex flex-col items-center justify-center py-1 px-1.5 rounded-xl text-2xs font-semibold transition-all min-w-[50px] active:scale-95"
+                    :class="route().current('documents.*') ? 'text-emerald-700 font-bold' : 'text-slate-500 hover:text-slate-800'"
+                >
+                    <div class="relative">
+                        <AppIcon name="presentation" :size="20" />
+                        <span v-if="route().current('documents.*')" class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                    </div>
+                    <span class="mt-1 text-[10px] tracking-tight">Proposal</span>
+                </Link>
+            </div>
+        </nav>
     </div>
 </template>
