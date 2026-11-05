@@ -37,4 +37,3 @@ class TemplateTask extends Model
         return $this->belongsTo(TemplateStage::class);
     }
 }
-

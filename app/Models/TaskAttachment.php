@@ -35,4 +35,3 @@ class TaskAttachment extends Model
         return $this->belongsTo(User::class);
     }
 }
-

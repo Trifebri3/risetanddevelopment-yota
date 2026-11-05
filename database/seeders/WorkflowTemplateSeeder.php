@@ -13,4 +13,3 @@ class WorkflowTemplateSeeder extends Seeder
         $service->syncDefaultTemplates();
     }
 }
-

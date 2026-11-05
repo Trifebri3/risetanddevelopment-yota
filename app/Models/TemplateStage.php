@@ -34,4 +34,3 @@ class TemplateStage extends Model
         return $this->hasMany(TemplateTask::class)->orderBy('order');
     }
 }
-

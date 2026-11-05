@@ -32,4 +32,3 @@ class TaskReview extends Model
         return $this->belongsTo(User::class);
     }
 }
-

@@ -246,4 +246,3 @@ class ModularMethodologyAndTaskEngineTest extends TestCase
         $this->assertEquals(50, $project->outcome_progress_percent);
     }
 }
-

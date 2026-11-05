@@ -27,4 +27,3 @@ class TaskChecklist extends Model
         return $this->belongsTo(Task::class);
     }
 }
-

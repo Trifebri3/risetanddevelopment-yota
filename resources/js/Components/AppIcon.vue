@@ -42,7 +42,14 @@ import {
     Layers,
     Cpu,
     BookOpen,
-    Smartphone
+    Smartphone,
+    Pin,
+    PinOff,
+    MoreVertical,
+    Archive,
+    FolderCheck,
+    CheckCheck,
+    Edit3
 } from 'lucide-vue-next';
 
 const props = defineProps({
@@ -122,6 +129,14 @@ const iconMap = {
     'book': BookOpen,
     'smartphone': Smartphone,
     'mobile': Smartphone,
+    'pin': Pin,
+    'pin-off': PinOff,
+    'dots': MoreVertical,
+    'more-vertical': MoreVertical,
+    'archive': Archive,
+    'folder-check': FolderCheck,
+    'check-check': CheckCheck,
+    'edit': Edit3,
 };
 
 const resolvedComponent = iconMap[props.name] || FileText;

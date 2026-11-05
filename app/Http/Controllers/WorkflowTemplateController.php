@@ -44,4 +44,3 @@ class WorkflowTemplateController extends Controller
         return back()->with('success', 'Metodologi & tahapan operasional "'.$template->name.'" berhasil diterapkan pada proyek.');
     }
 }
-

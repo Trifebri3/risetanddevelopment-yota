@@ -46,6 +46,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/projects/join/{token}', [ProjectMemberController::class, 'joinViaToken'])->name('projects.join');
     Route::get('/projects/{project}', [ProjectController::class, 'show'])->name('projects.show');
     Route::put('/projects/{project}', [ProjectController::class, 'update'])->name('projects.update');
+    Route::patch('/projects/{project}/status', [ProjectController::class, 'updateStatus'])->name('projects.update_status');
+    Route::post('/projects/{project}/toggle-pin', [ProjectController::class, 'togglePin'])->name('projects.toggle_pin');
     Route::delete('/projects/{project}', [ProjectController::class, 'destroy'])->name('projects.destroy');
     Route::post('/projects/{project}/share', [ProjectController::class, 'updateSharing'])->name('projects.share.update');
     Route::post('/projects/{project}/regenerate-token', [ProjectController::class, 'regenerateShareToken'])->name('projects.share.regenerate');

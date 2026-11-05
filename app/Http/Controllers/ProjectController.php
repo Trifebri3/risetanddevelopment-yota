@@ -23,18 +23,18 @@ class ProjectController extends Controller
         $user = $request->user();
         $scope = $request->get('scope', 'all');
 
-        $query = Project::query();
+        $baseQuery = Project::query();
 
         if ($scope === 'owned') {
-            $query->where('user_id', $user->id);
+            $baseQuery->where('user_id', $user->id);
         } elseif ($scope === 'team') {
-            $query->where('user_id', '!=', $user->id)
+            $baseQuery->where('user_id', '!=', $user->id)
                 ->whereHas('members', function ($mq) use ($user) {
                     $mq->where('user_id', $user->id)
                         ->orWhere('email', Str::lower($user->email));
                 });
         } else {
-            $query->where(function ($q) use ($user) {
+            $baseQuery->where(function ($q) use ($user) {
                 $q->where('user_id', $user->id)
                     ->orWhereHas('members', function ($mq) use ($user) {
                         $mq->where('user_id', $user->id)
@@ -44,11 +44,27 @@ class ProjectController extends Controller
         }
 
         if ($request->filled('mode') && $request->mode !== 'all') {
-            $query->where('mode', $request->mode);
+            $baseQuery->where('mode', $request->mode);
         }
 
+        // Folder & status counts
+        $statusCounts = [
+            'all' => (clone $baseQuery)->count(),
+            'active' => (clone $baseQuery)->where('status', 'active')->count(),
+            'completed' => (clone $baseQuery)->where('status', 'completed')->count(),
+            'pinned' => (clone $baseQuery)->where('is_pinned', true)->count(),
+            'draft' => (clone $baseQuery)->where('status', 'draft')->count(),
+            'on_hold' => (clone $baseQuery)->where('status', 'on_hold')->count(),
+        ];
+
+        $query = clone $baseQuery;
+
         if ($request->filled('status') && $request->status !== 'all') {
-            $query->where('status', $request->status);
+            if ($request->status === 'pinned') {
+                $query->where('is_pinned', true);
+            } else {
+                $query->where('status', $request->status);
+            }
         }
 
         if ($request->filled('search')) {
@@ -61,11 +77,14 @@ class ProjectController extends Controller
         }
 
         $projects = $query->with(['phases', 'milestones', 'tasks', 'outputs', 'user', 'members.user'])
+            ->orderByDesc('is_pinned')
+            ->orderByDesc('pinned_at')
             ->orderByDesc('updated_at')
             ->get();
 
         return Inertia::render('Projects/Index', [
             'projects' => $projects,
+            'statusCounts' => $statusCounts,
             'filters' => [
                 'scope' => $scope,
                 'mode' => $request->mode ?? 'all',
@@ -229,7 +248,52 @@ class ProjectController extends Controller
 
         $project->delete();
 
-        return redirect()->route('projects.index')->with('success', 'Proyek berhasil dihapus.');
+        $referer = $request->headers->get('referer', '');
+        if (str_contains($referer, '/projects/'.$project->slug) || str_contains($referer, '/projects/'.$project->id)) {
+            return redirect()->route('projects.index')->with('success', 'Proyek berhasil dihapus.');
+        }
+
+        return back()->with('success', 'Proyek berhasil dihapus.');
+    }
+
+    public function togglePin(Request $request, Project $project): RedirectResponse
+    {
+        if (! $project->hasAccess($request->user())) {
+            abort(403, 'Anda tidak memiliki akses ke proyek ini.');
+        }
+
+        $project->is_pinned = ! $project->is_pinned;
+        $project->pinned_at = $project->is_pinned ? now() : null;
+        $project->save();
+
+        $message = $project->is_pinned ? 'Proyek berhasil disematkan ke daftar teratas.' : 'Sematan proyek dilepas.';
+
+        return back()->with('success', $message);
+    }
+
+    public function updateStatus(Request $request, Project $project): RedirectResponse
+    {
+        if (! $project->hasAccess($request->user())) {
+            abort(403, 'Anda tidak memiliki akses ke proyek ini.');
+        }
+
+        $validated = $request->validate([
+            'status' => 'required|in:draft,active,completed,on_hold',
+        ]);
+
+        $project->update([
+            'status' => $validated['status'],
+        ]);
+
+        $statusLabel = match ($validated['status']) {
+            'completed' => 'Sudah Selesai (tersimpan di Folder Selesai)',
+            'active' => 'Aktif & Berjalan',
+            'draft' => 'Draf',
+            'on_hold' => 'Tertunda (On Hold)',
+            default => $validated['status'],
+        };
+
+        return back()->with('success', "Status proyek diubah menjadi: {$statusLabel}.");
     }
 
     public function updateSharing(Request $request, Project $project): RedirectResponse

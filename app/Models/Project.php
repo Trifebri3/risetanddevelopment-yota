@@ -22,6 +22,8 @@ class Project extends Model
         'problem_statement',
         'target_outcome',
         'status',
+        'is_pinned',
+        'pinned_at',
         'start_date',
         'end_date',
         'progress_percent',
@@ -36,6 +38,8 @@ class Project extends Model
 
     protected $casts = [
         'is_public' => 'boolean',
+        'is_pinned' => 'boolean',
+        'pinned_at' => 'datetime',
         'public_settings' => 'array',
         'start_date' => 'date:Y-m-d',
         'end_date' => 'date:Y-m-d',

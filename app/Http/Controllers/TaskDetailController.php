@@ -284,4 +284,3 @@ class TaskDetailController extends Controller
         return back()->with('success', 'Komentar ditambahkan.');
     }
 }
-

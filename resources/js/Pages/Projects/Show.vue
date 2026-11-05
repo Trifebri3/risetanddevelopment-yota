@@ -121,10 +121,23 @@ const submitProjectEdit = () => {
     });
 };
 
+const isDeleteModalOpen = ref(false);
 const deleteProject = () => {
-    if (confirm(`Yakin ingin menghapus proyek "${props.project.title}"? Semua data fase, milestone, tugas, logbook, dan anggaran akan terhapus permanen.`)) {
-        router.delete(route('projects.destroy', projectKey.value));
-    }
+    isDeleteModalOpen.value = true;
+};
+
+const confirmDeleteProject = () => {
+    router.delete(route('projects.destroy', projectKey.value));
+};
+
+const togglePin = () => {
+    router.post(route('projects.toggle_pin', projectKey.value), {}, { preserveScroll: true });
+};
+
+const isStatusDropdownOpen = ref(false);
+const changeStatus = (newStatus) => {
+    isStatusDropdownOpen.value = false;
+    router.patch(route('projects.update_status', projectKey.value), { status: newStatus }, { preserveScroll: true });
 };
 
 // ==========================================
@@ -634,6 +647,10 @@ const regenerateTeamInvite = () => {
                                 <AppIcon :name="getModeInfo(project.mode).icon" :size="12" class="mr-1.5" />
                                 <span>{{ getModeInfo(project.mode).label }}</span>
                             </span>
+                            <span v-if="project.is_pinned" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-amber-100 text-amber-800 border border-amber-300 shadow-2xs">
+                                <AppIcon name="pin" :size="11" class="mr-1 text-amber-600" />
+                                <span>Disematkan</span>
+                            </span>
                             <span v-if="project.is_public" class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200">
                                 <AppIcon name="share" :size="11" class="mr-1" />
                                 <span>Tautan Publik Aktif</span>
@@ -646,7 +663,80 @@ const regenerateTeamInvite = () => {
                     </div>
 
                     <!-- Action Buttons (Desktop & Tablet) -->
-                    <div class="hidden sm:flex flex-wrap items-center gap-2">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <!-- Quick Pin Button -->
+                        <button
+                            @click="togglePin"
+                            type="button"
+                            :class="project.is_pinned ? 'bg-amber-100 text-amber-800 border-amber-300 font-bold shadow-2xs' : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-50'"
+                            class="inline-flex items-center px-3.5 py-2 text-xs font-semibold rounded-xl border shadow-xs transition-all active:scale-95"
+                            :title="project.is_pinned ? 'Lepas Sematan' : 'Sematkan ke Teratas'"
+                        >
+                            <AppIcon name="pin" :size="13" class="mr-1.5" :class="project.is_pinned ? 'fill-amber-600 text-amber-700' : 'text-slate-500'" />
+                            <span>{{ project.is_pinned ? 'Disematkan' : 'Sematkan' }}</span>
+                        </button>
+
+                        <!-- Status Selector Button & Dropdown -->
+                        <div class="relative">
+                            <button
+                                @click="isStatusDropdownOpen = !isStatusDropdownOpen"
+                                type="button"
+                                :class="{
+                                    'bg-emerald-600 text-white border-emerald-600 shadow-xs font-extrabold': project.status === 'completed',
+                                    'bg-emerald-50 text-emerald-800 border-emerald-300 font-bold': project.status === 'active',
+                                    'bg-slate-100 text-slate-700 border-slate-300 font-medium': project.status === 'draft',
+                                    'bg-amber-50 text-amber-800 border-amber-300 font-medium': project.status === 'on_hold'
+                                }"
+                                class="inline-flex items-center px-3.5 py-2 text-xs rounded-xl border shadow-xs transition-all active:scale-95"
+                            >
+                                <span class="w-2 h-2 rounded-full mr-1.5" :class="project.status === 'completed' ? 'bg-white' : (project.status === 'active' ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400')"></span>
+                                <span>Status: {{ project.status === 'completed' ? 'Sudah Selesai' : (project.status === 'active' ? 'Aktif' : (project.status === 'draft' ? 'Draf' : 'Tertunda')) }}</span>
+                                <span class="ml-1 text-[10px]">▾</span>
+                            </button>
+
+                            <!-- Dropdown -->
+                            <div
+                                v-if="isStatusDropdownOpen"
+                                class="absolute right-0 mt-1 w-52 bg-white rounded-2xl shadow-xl border border-slate-200 py-1.5 z-30 animate-fade-in text-xs space-y-0.5"
+                            >
+                                <div class="px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100">
+                                    Pilih Status Proyek
+                                </div>
+                                <button
+                                    @click="changeStatus('active')"
+                                    :class="project.status === 'active' ? 'bg-emerald-50 text-emerald-900 font-bold' : 'text-slate-700 hover:bg-slate-50'"
+                                    class="w-full text-left px-3 py-1.5 flex items-center space-x-2"
+                                >
+                                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                                    <span>⚡ Aktif & Berjalan</span>
+                                </button>
+                                <button
+                                    @click="changeStatus('completed')"
+                                    :class="project.status === 'completed' ? 'bg-emerald-50 text-emerald-900 font-bold' : 'text-slate-700 hover:bg-slate-50'"
+                                    class="w-full text-left px-3 py-1.5 flex items-center space-x-2"
+                                >
+                                    <span class="w-2 h-2 rounded-full bg-teal-600"></span>
+                                    <span>📁 Sudah Selesai (Folder Selesai)</span>
+                                </button>
+                                <button
+                                    @click="changeStatus('draft')"
+                                    :class="project.status === 'draft' ? 'bg-slate-100 text-slate-900 font-bold' : 'text-slate-700 hover:bg-slate-50'"
+                                    class="w-full text-left px-3 py-1.5 flex items-center space-x-2"
+                                >
+                                    <span class="w-2 h-2 rounded-full bg-slate-400"></span>
+                                    <span>📝 Draf</span>
+                                </button>
+                                <button
+                                    @click="changeStatus('on_hold')"
+                                    :class="project.status === 'on_hold' ? 'bg-amber-50 text-amber-900 font-bold' : 'text-slate-700 hover:bg-slate-50'"
+                                    class="w-full text-left px-3 py-1.5 flex items-center space-x-2"
+                                >
+                                    <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                                    <span>⏸️ Tertunda (On Hold)</span>
+                                </button>
+                            </div>
+                        </div>
+
                         <button
                             v-if="isOwner"
                             @click="isProjectModalOpen = true"
@@ -680,7 +770,38 @@ const regenerateTeamInvite = () => {
                             <AppIcon name="share" :size="14" class="mr-1.5" />
                             <span>Bagikan</span>
                         </button>
+                        <button
+                            v-if="isOwner"
+                            @click="deleteProject"
+                            type="button"
+                            class="inline-flex items-center px-3 py-2 text-xs font-semibold rounded-xl bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 shadow-xs transition-all active:scale-95"
+                            title="Hapus Proyek"
+                        >
+                            <AppIcon name="trash" :size="13" class="mr-1 text-rose-600" />
+                            <span>Hapus</span>
+                        </button>
                     </div>
+                </div>
+
+                <!-- Banner if project is completed (Folder Sudah Selesai) -->
+                <div
+                    v-if="project.status === 'completed'"
+                    class="p-4 rounded-2xl bg-gradient-to-r from-emerald-50 via-teal-50 to-white border border-emerald-300 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs sm:text-sm animate-fade-in"
+                >
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0">
+                            <AppIcon name="folder-check" :size="16" />
+                        </div>
+                        <span class="text-emerald-950 font-bold">
+                            Proyek ini berstatus <strong>Sudah Selesai</strong> dan tersimpan di <strong>Folder Sudah Selesai</strong>.
+                        </span>
+                    </div>
+                    <button
+                        @click="changeStatus('active')"
+                        class="text-xs text-emerald-800 underline hover:text-emerald-950 font-extrabold self-end sm:self-auto"
+                    >
+                        Aktifkan Kembali &rarr;
+                    </button>
                 </div>
 
                 <!-- Progress Header Strip -->
@@ -2454,5 +2575,41 @@ const regenerateTeamInvite = () => {
             :available-templates="availableTemplates"
             @close="isTemplateSelectorOpen = false"
         />
+
+        <!-- MODAL: KONFIRMASI HAPUS PROYEK -->
+        <div v-if="isDeleteModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs">
+            <div class="bg-white rounded-2xl sm:rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100 animate-fade-in space-y-4">
+                <div class="flex items-center space-x-3 text-rose-600">
+                    <div class="w-10 h-10 rounded-2xl bg-rose-50 flex items-center justify-center shrink-0">
+                        <AppIcon name="trash" :size="20" />
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold text-slate-900">Hapus Proyek Ini?</h3>
+                        <p class="text-xs text-slate-500">Tindakan ini tidak dapat dibatalkan.</p>
+                    </div>
+                </div>
+
+                <p class="text-xs text-slate-700 leading-relaxed bg-slate-50 p-3.5 rounded-xl border border-slate-100">
+                    Yakin ingin menghapus proyek <strong class="text-slate-900">"{{ project.title }}"</strong>? Seluruh roadmap, tugas, berkas luaran, dan catatan logbook akan dihapus secara permanen.
+                </p>
+
+                <div class="flex items-center justify-end space-x-2 pt-2">
+                    <button
+                        type="button"
+                        @click="isDeleteModalOpen = false"
+                        class="px-4 py-2 text-xs font-semibold rounded-xl text-slate-600 hover:bg-slate-100"
+                    >
+                        Batal
+                    </button>
+                    <button
+                        type="button"
+                        @click="confirmDeleteProject"
+                        class="px-4 py-2 text-xs font-bold rounded-xl bg-rose-600 text-white hover:bg-rose-700 shadow-xs active:scale-95 transition-all"
+                    >
+                        Ya, Hapus Proyek
+                    </button>
+                </div>
+            </div>
+        </div>
     </AuthenticatedLayout>
 </template>

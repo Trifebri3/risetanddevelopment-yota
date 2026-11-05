@@ -26,4 +26,3 @@ class TaskDependency extends Model
         return $this->belongsTo(Task::class, 'depends_on_task_id');
     }
 }
-

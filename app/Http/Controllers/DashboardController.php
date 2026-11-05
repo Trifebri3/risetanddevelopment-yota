@@ -27,12 +27,16 @@ class DashboardController extends Controller
                 });
         })
             ->with(['phases', 'milestones', 'tasks', 'outputs', 'user', 'members.user'])
+            ->orderByDesc('is_pinned')
+            ->orderByDesc('pinned_at')
             ->orderByDesc('updated_at')
             ->get();
 
         $stats = [
             'total_projects' => $projects->count(),
             'active_projects' => $projects->where('status', 'active')->count(),
+            'completed_projects' => $projects->where('status', 'completed')->count(),
+            'pinned_projects' => $projects->where('is_pinned', true)->count(),
             'total_budget' => (float) BudgetItem::whereIn('project_id', $projects->pluck('id'))->sum('total_estimated_price'),
             'total_expenses' => (float) Expense::whereIn('project_id', $projects->pluck('id'))->sum('amount'),
             'total_tasks' => Task::whereIn('project_id', $projects->pluck('id'))->count(),

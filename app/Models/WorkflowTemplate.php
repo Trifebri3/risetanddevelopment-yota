@@ -34,4 +34,3 @@ class WorkflowTemplate extends Model
         return $this->hasMany(Project::class);
     }
 }
-
