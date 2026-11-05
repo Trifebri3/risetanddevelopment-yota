@@ -7,6 +7,7 @@ use App\Http\Controllers\JournalEntryController;
 use App\Http\Controllers\OutputController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\ProjectDocumentController;
 use App\Http\Controllers\ProjectMemberController;
 use App\Http\Controllers\ProjectMetricController;
 use App\Http\Controllers\PublicProjectController;
@@ -39,6 +40,12 @@ Route::post('/share/{token}/feedback', [PublicProjectController::class, 'storeFe
 Route::middleware(['auth', 'verified'])->group(function () {
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    // Dokumen Proposal & Pitch Deck
+    Route::get('/documents', [ProjectDocumentController::class, 'index'])->name('documents.index');
+    Route::post('/projects/{project}/proposal', [ProjectDocumentController::class, 'storeOrUpdateProposal'])->name('projects.proposal.update');
+    Route::post('/projects/{project}/pitch-deck', [ProjectDocumentController::class, 'storeOrUpdatePitchDeck'])->name('projects.pitch_deck.update');
+    Route::post('/projects/{project}/documents/sync', [ProjectDocumentController::class, 'syncFromProject'])->name('projects.documents.sync');
 
     // Projects & Team Collaboration
     Route::get('/projects', [ProjectController::class, 'index'])->name('projects.index');

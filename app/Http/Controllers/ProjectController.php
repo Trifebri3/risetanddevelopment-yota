@@ -47,6 +47,13 @@ class ProjectController extends Controller
             $baseQuery->where('mode', $request->mode);
         }
 
+        // Available distinct labels across accessible projects
+        $availableLabels = (clone $baseQuery)->whereNotNull('label')
+            ->where('label', '!=', '')
+            ->distinct()
+            ->pluck('label')
+            ->values();
+
         // Folder & status counts
         $statusCounts = [
             'all' => (clone $baseQuery)->count(),
@@ -58,6 +65,10 @@ class ProjectController extends Controller
         ];
 
         $query = clone $baseQuery;
+
+        if ($request->filled('label') && $request->label !== 'all') {
+            $query->where('label', $request->label);
+        }
 
         if ($request->filled('status') && $request->status !== 'all') {
             if ($request->status === 'pinned') {
@@ -71,12 +82,13 @@ class ProjectController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', "%{$search}%")
+                    ->orWhere('label', 'like', "%{$search}%")
                     ->orWhere('description', 'like', "%{$search}%")
                     ->orWhere('problem_statement', 'like', "%{$search}%");
             });
         }
 
-        $projects = $query->with(['phases', 'milestones', 'tasks', 'outputs', 'user', 'members.user'])
+        $projects = $query->with(['phases', 'milestones', 'tasks', 'outputs', 'user', 'members.user', 'proposal', 'pitchDeck'])
             ->orderByDesc('is_pinned')
             ->orderByDesc('pinned_at')
             ->orderByDesc('updated_at')
@@ -85,10 +97,12 @@ class ProjectController extends Controller
         return Inertia::render('Projects/Index', [
             'projects' => $projects,
             'statusCounts' => $statusCounts,
+            'availableLabels' => $availableLabels,
             'filters' => [
                 'scope' => $scope,
                 'mode' => $request->mode ?? 'all',
                 'status' => $request->status ?? 'all',
+                'label' => $request->label ?? 'all',
                 'search' => $request->search ?? '',
             ],
         ]);
@@ -99,6 +113,7 @@ class ProjectController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'mode' => 'required|in:research,product,social,competition',
+            'label' => 'nullable|string|max:100',
             'workflow_template_id' => 'nullable|exists:workflow_templates,id',
             'description' => 'nullable|string',
             'problem_statement' => 'nullable|string',
@@ -111,6 +126,7 @@ class ProjectController extends Controller
             'user_id' => $request->user()->id,
             'title' => $validated['title'],
             'mode' => $validated['mode'],
+            'label' => $validated['label'] ?? null,
             'workflow_template_id' => $validated['workflow_template_id'] ?? null,
             'description' => $validated['description'] ?? null,
             'problem_statement' => $validated['problem_statement'] ?? null,
@@ -196,6 +212,8 @@ class ProjectController extends Controller
             'outputs',
             'feedbacks',
             'members.user',
+            'proposal',
+            'pitchDeck',
         ]);
 
         $availableTemplates = WorkflowTemplate::with('stages')->get();
@@ -227,6 +245,7 @@ class ProjectController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'mode' => 'required|in:research,product,social,competition',
+            'label' => 'nullable|string|max:100',
             'description' => 'nullable|string',
             'problem_statement' => 'nullable|string',
             'target_outcome' => 'nullable|string',

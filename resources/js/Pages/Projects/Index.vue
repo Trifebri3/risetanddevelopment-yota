@@ -8,6 +8,10 @@ const props = defineProps({
     projects: Array,
     filters: Object,
     statusCounts: Object,
+    availableLabels: {
+        type: Array,
+        default: () => [],
+    },
 });
 
 const isModalOpen = ref(false);
@@ -19,6 +23,7 @@ const searchInput = ref(props.filters?.search || '');
 const selectedScope = ref(props.filters?.scope || 'all');
 const selectedMode = ref(props.filters?.mode || 'all');
 const selectedStatus = ref(props.filters?.status || 'all');
+const selectedLabel = ref(props.filters?.label || 'all');
 
 // Status Dropdown State for cards
 const activeStatusDropdownId = ref(null);
@@ -45,6 +50,7 @@ onMounted(() => {
 const form = useForm({
     title: '',
     mode: 'research',
+    label: '',
     description: '',
     problem_statement: '',
     target_outcome: '',
@@ -67,6 +73,7 @@ const editForm = useForm({
     slug: '',
     title: '',
     mode: 'research',
+    label: '',
     status: 'active',
     description: '',
     problem_statement: '',
@@ -81,6 +88,7 @@ const openEditModal = (project, event) => {
     editForm.slug = project.slug;
     editForm.title = project.title;
     editForm.mode = project.mode;
+    editForm.label = project.label || '';
     editForm.status = project.status;
     editForm.description = project.description || '';
     editForm.problem_statement = project.problem_statement || '';
@@ -128,6 +136,11 @@ const changeProjectStatus = (project, newStatus, event) => {
     router.patch(route('projects.update_status', project.slug || project.id), { status: newStatus }, { preserveScroll: true });
 };
 
+const filterByLabel = (label) => {
+    selectedLabel.value = label;
+    applyFilter();
+};
+
 const applyFilter = (newStatus = null) => {
     if (newStatus !== null) {
         selectedStatus.value = newStatus;
@@ -139,6 +152,7 @@ const applyFilter = (newStatus = null) => {
             scope: selectedScope.value !== 'all' ? selectedScope.value : undefined,
             mode: selectedMode.value !== 'all' ? selectedMode.value : undefined,
             status: selectedStatus.value !== 'all' ? selectedStatus.value : undefined,
+            label: selectedLabel.value !== 'all' ? selectedLabel.value : undefined,
         },
         { preserveState: true, replace: true }
     );
@@ -438,6 +452,33 @@ const getStatusBadge = (status) => {
                     </div>
                 </div>
 
+                <!-- Label Filter Bar (Startup Agronex, Ristek Yota, etc.) -->
+                <div v-if="availableLabels && availableLabels.length > 0" class="bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-2xs flex items-center gap-2 flex-wrap text-xs">
+                    <span class="text-2xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1 mr-1">
+                        <AppIcon name="tag" :size="12" class="text-slate-400" />
+                        <span>Filter Label:</span>
+                    </span>
+                    <button
+                        type="button"
+                        @click="filterByLabel('all')"
+                        class="px-2.5 py-1 rounded-xl text-xs font-semibold transition-all border"
+                        :class="selectedLabel === 'all' ? 'bg-slate-900 text-white border-slate-900 shadow-2xs' : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'"
+                    >
+                        Semua Label
+                    </button>
+                    <button
+                        v-for="lbl in availableLabels"
+                        :key="lbl"
+                        type="button"
+                        @click="filterByLabel(lbl)"
+                        class="px-2.5 py-1 rounded-xl text-xs font-semibold transition-all border inline-flex items-center gap-1"
+                        :class="selectedLabel === lbl ? 'bg-emerald-700 text-white border-emerald-700 shadow-2xs' : 'bg-emerald-50/60 text-emerald-800 border-emerald-200 hover:bg-emerald-100'"
+                    >
+                        <span>🏷️</span>
+                        <span>{{ lbl }}</span>
+                    </button>
+                </div>
+
                 <!-- 4. Projects Cards Grid -->
                 <div v-if="projects.length === 0" class="bg-white rounded-2xl sm:rounded-3xl border border-slate-200/80 p-8 sm:p-12 text-center">
                     <AppIcon name="folder" :size="36" class="text-slate-300 mx-auto" />
@@ -477,6 +518,14 @@ const getStatusBadge = (status) => {
                                     >
                                         <AppIcon :name="getModeInfo(project.mode).icon" :size="12" class="mr-1.5" />
                                         <span>{{ getModeInfo(project.mode).label }}</span>
+                                    </span>
+
+                                    <!-- Label Badge (Startup Agronex, Ristek Yota, etc.) -->
+                                    <span
+                                        v-if="project.label"
+                                        class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200"
+                                    >
+                                        <span>🏷️ {{ project.label }}</span>
                                     </span>
 
                                     <!-- Pinned Badge if active -->
@@ -618,7 +667,14 @@ const getStatusBadge = (status) => {
                                 <div class="flex items-center space-x-2 text-[11px] text-slate-400">
                                     <span>{{ project.tasks?.length || 0 }} Tugas</span>
                                     <span>•</span>
-                                    <span>{{ project.milestones?.length || 0 }} Milestone</span>
+                                    <Link
+                                        :href="route('projects.show', { project: project.slug || project.id, tab: 'pitch_deck' })"
+                                        class="hover:text-emerald-700 hover:underline flex items-center gap-1 font-medium text-slate-500"
+                                        title="Buka Dokumen Proposal & Slide Pitch Deck"
+                                    >
+                                        <AppIcon name="presentation" :size="12" class="text-emerald-600" />
+                                        <span>Proposal & Deck</span>
+                                    </Link>
                                 </div>
 
                                 <Link
@@ -722,6 +778,30 @@ const getStatusBadge = (status) => {
                             placeholder="Contoh: Pengembangan Model AI Deteksi Dini Penyakit Padi"
                             class="w-full text-xs sm:text-sm px-4 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none"
                         />
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">
+                            Label Proyek / Inisiatif <span class="text-slate-400 font-normal">(Opsional)</span>
+                        </label>
+                        <input
+                            v-model="form.label"
+                            type="text"
+                            placeholder="Misal: Startup Agronex, Ristek Yota, Smart Soil, PKM 2026..."
+                            class="w-full text-xs sm:text-sm px-4 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none"
+                        />
+                        <div class="flex items-center gap-1.5 mt-1.5 flex-wrap text-2xs text-slate-500">
+                            <span>Saran:</span>
+                            <button
+                                v-for="preset in ['Startup Agronex', 'Ristek Yota', 'Smart Soil', 'Inovasi Desa', 'PKM Dikti']"
+                                :key="preset"
+                                type="button"
+                                @click="form.label = preset"
+                                class="px-2 py-0.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-300 transition-colors"
+                            >
+                                + {{ preset }}
+                            </button>
+                        </div>
                     </div>
 
                     <div>
@@ -835,6 +915,30 @@ const getStatusBadge = (status) => {
                             required
                             class="w-full text-xs sm:text-sm px-4 py-2.5 rounded-xl border border-slate-200 focus:ring-emerald-500"
                         />
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">
+                            Label Proyek / Inisiatif <span class="text-slate-400 font-normal">(Opsional)</span>
+                        </label>
+                        <input
+                            v-model="editForm.label"
+                            type="text"
+                            placeholder="Misal: Startup Agronex, Ristek Yota, Smart Soil, PKM 2026..."
+                            class="w-full text-xs sm:text-sm px-4 py-2.5 rounded-xl border border-slate-200 focus:ring-emerald-500"
+                        />
+                        <div class="flex items-center gap-1.5 mt-1.5 flex-wrap text-2xs text-slate-500">
+                            <span>Saran:</span>
+                            <button
+                                v-for="preset in ['Startup Agronex', 'Ristek Yota', 'Smart Soil', 'Inovasi Desa', 'PKM Dikti']"
+                                :key="preset"
+                                type="button"
+                                @click="editForm.label = preset"
+                                class="px-2 py-0.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-300 transition-colors"
+                            >
+                                + {{ preset }}
+                            </button>
+                        </div>
                     </div>
 
                     <div>

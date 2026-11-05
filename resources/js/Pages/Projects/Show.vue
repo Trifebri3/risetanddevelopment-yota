@@ -7,6 +7,7 @@ import TaskDetailDrawer from '@/Components/Projects/TaskDetailDrawer.vue';
 import InteractiveRoadmap from '@/Components/Projects/InteractiveRoadmap.vue';
 import ProjectProgressMetrics from '@/Components/Projects/ProjectProgressMetrics.vue';
 import TemplateSelectorModal from '@/Components/Projects/TemplateSelectorModal.vue';
+import ProjectProposalAndPitchDeck from '@/Pages/Projects/Partials/ProjectProposalAndPitchDeck.vue';
 
 const props = defineProps({
     project: Object,
@@ -16,7 +17,9 @@ const props = defineProps({
     availableTemplates: Array,
 });
 
-const activeTab = ref('overview'); // 'overview', 'roadmap', 'journal', 'budget', 'outputs', 'team', 'share'
+const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+const initialTab = urlParams && urlParams.get('tab') ? urlParams.get('tab') : 'overview';
+const activeTab = ref(initialTab); // 'overview', 'roadmap', 'journal', 'budget', 'outputs', 'team', 'share', 'pitch_deck'
 
 // Modular Methodology & Task Engine State
 const isTaskDrawerOpen = ref(false);
@@ -105,6 +108,7 @@ const getModeInfo = (mode) => {
 const projectForm = useForm({
     title: props.project.title,
     mode: props.project.mode,
+    label: props.project.label || '',
     status: props.project.status,
     start_date: props.project.start_date || '',
     end_date: props.project.end_date || '',
@@ -647,6 +651,10 @@ const regenerateTeamInvite = () => {
                                 <AppIcon :name="getModeInfo(project.mode).icon" :size="12" class="mr-1.5" />
                                 <span>{{ getModeInfo(project.mode).label }}</span>
                             </span>
+                            <span v-if="project.label" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 shadow-2xs">
+                                <span class="mr-1">🏷️</span>
+                                <span>{{ project.label }}</span>
+                            </span>
                             <span v-if="project.is_pinned" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-amber-100 text-amber-800 border border-amber-300 shadow-2xs">
                                 <AppIcon name="pin" :size="11" class="mr-1 text-amber-600" />
                                 <span>Disematkan</span>
@@ -870,6 +878,14 @@ const regenerateTeamInvite = () => {
                     >
                         <AppIcon name="users" :size="14" class="mr-1.5" />
                         <span>Tim ({{ (project.members?.length || 0) + 1 }})</span>
+                    </button>
+                    <button
+                        @click="activeTab = 'pitch_deck'"
+                        :class="activeTab === 'pitch_deck' ? 'text-emerald-800 border-emerald-600 bg-emerald-50/70 font-bold rounded-t-xl' : 'text-slate-600 border-transparent hover:text-slate-900 hover:bg-slate-50 rounded-t-xl'"
+                        class="py-2.5 px-3.5 border-b-2 transition-all shrink-0 flex items-center whitespace-nowrap"
+                    >
+                        <AppIcon name="presentation" :size="14" class="mr-1.5" />
+                        <span>Proposal & Pitch Deck</span>
                     </button>
                     <button
                         @click="activeTab = 'share'"
@@ -1724,6 +1740,17 @@ const regenerateTeamInvite = () => {
                         </div>
                     </div>
                 </div>
+
+                <!-- ============================================================== -->
+                <!-- TAB 8: PROPOSAL & PITCH DECK                                 -->
+                <!-- ============================================================== -->
+                <div v-if="activeTab === 'pitch_deck'" class="space-y-6">
+                    <ProjectProposalAndPitchDeck
+                        :project="project"
+                        :budget-summary="budgetSummary"
+                        :is-owner="isOwner"
+                    />
+                </div>
             </div>
         </div>
 
@@ -1744,6 +1771,30 @@ const regenerateTeamInvite = () => {
                     <div>
                         <label class="block font-semibold text-slate-700 mb-1">Judul Proyek <span class="text-rose-500">*</span></label>
                         <input v-model="projectForm.title" type="text" required class="w-full text-xs sm:text-sm px-3.5 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" />
+                    </div>
+
+                    <div>
+                        <label class="block font-semibold text-slate-700 mb-1">
+                            Label Proyek / Inisiatif <span class="text-slate-400 font-normal">(Opsional)</span>
+                        </label>
+                        <input
+                            v-model="projectForm.label"
+                            type="text"
+                            placeholder="Misal: Startup Agronex, Ristek Yota, Smart Soil, PKM 2026..."
+                            class="w-full text-xs sm:text-sm px-3.5 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                        />
+                        <div class="flex items-center gap-1.5 mt-1.5 flex-wrap text-2xs text-slate-500">
+                            <span>Saran:</span>
+                            <button
+                                v-for="preset in ['Startup Agronex', 'Ristek Yota', 'Smart Soil', 'Inovasi Desa', 'PKM Dikti']"
+                                :key="preset"
+                                type="button"
+                                @click="projectForm.label = preset"
+                                class="px-2 py-0.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-300 transition-colors"
+                            >
+                                + {{ preset }}
+                            </button>
+                        </div>
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">

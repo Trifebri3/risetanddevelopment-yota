@@ -49,7 +49,14 @@ import {
     Archive,
     FolderCheck,
     CheckCheck,
-    Edit3
+    Edit3,
+    Presentation,
+    Briefcase,
+    Printer,
+    Copy,
+    Maximize2,
+    Play,
+    FileCheck
 } from 'lucide-vue-next';
 
 const props = defineProps({
@@ -137,6 +144,14 @@ const iconMap = {
     'folder-check': FolderCheck,
     'check-check': CheckCheck,
     'edit': Edit3,
+    'presentation': Presentation,
+    'pitch': Presentation,
+    'briefcase': Briefcase,
+    'printer': Printer,
+    'copy': Copy,
+    'maximize': Maximize2,
+    'play': Play,
+    'file-check': FileCheck,
 };
 
 const resolvedComponent = iconMap[props.name] || FileText;

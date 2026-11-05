@@ -53,6 +53,7 @@ const editForm = useForm({
     slug: '',
     title: '',
     mode: 'research',
+    label: '',
     status: 'active',
     description: '',
     problem_statement: '',
@@ -67,6 +68,7 @@ const openEditModal = (project, event) => {
     editForm.slug = project.slug;
     editForm.title = project.title;
     editForm.mode = project.mode;
+    editForm.label = project.label || '';
     editForm.status = project.status;
     editForm.description = project.description || '';
     editForm.problem_statement = project.problem_statement || '';
@@ -388,6 +390,13 @@ const getStatusBadge = (status) => {
                                                 </span>
 
                                                 <span
+                                                    v-if="project.label"
+                                                    class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200"
+                                                >
+                                                    <span>🏷️ {{ project.label }}</span>
+                                                </span>
+
+                                                <span
                                                     v-if="project.is_pinned"
                                                     class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-100 text-amber-800 border border-amber-300"
                                                 >
@@ -522,9 +531,14 @@ const getStatusBadge = (status) => {
                                         <div class="flex items-center space-x-3 text-slate-400 text-[11px]">
                                             <span>{{ project.tasks?.length || 0 }} Tugas</span>
                                             <span>•</span>
-                                            <span>{{ project.milestones?.length || 0 }} Milestone</span>
-                                            <span>•</span>
-                                            <span>{{ project.outputs?.length || 0 }} Luaran</span>
+                                            <Link
+                                                :href="route('projects.show', { project: project.slug || project.id, tab: 'pitch_deck' })"
+                                                class="hover:text-emerald-700 hover:underline flex items-center gap-1 font-semibold text-slate-500"
+                                                title="Buka Dokumen Proposal & Slide Pitch Deck"
+                                            >
+                                                <AppIcon name="presentation" :size="11" class="text-emerald-600" />
+                                                <span>Proposal & Deck</span>
+                                            </Link>
                                         </div>
                                     </div>
                                 </div>
@@ -685,6 +699,30 @@ const getStatusBadge = (status) => {
                             required
                             class="w-full text-xs sm:text-sm px-4 py-2.5 rounded-xl border border-slate-200 focus:ring-emerald-500"
                         />
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">
+                            Label Proyek / Inisiatif <span class="text-slate-400 font-normal">(Opsional)</span>
+                        </label>
+                        <input
+                            v-model="editForm.label"
+                            type="text"
+                            placeholder="Misal: Startup Agronex, Ristek Yota, Smart Soil, PKM 2026..."
+                            class="w-full text-xs sm:text-sm px-4 py-2.5 rounded-xl border border-slate-200 focus:ring-emerald-500"
+                        />
+                        <div class="flex items-center gap-1.5 mt-1.5 flex-wrap text-2xs text-slate-500">
+                            <span>Saran:</span>
+                            <button
+                                v-for="preset in ['Startup Agronex', 'Ristek Yota', 'Smart Soil', 'Inovasi Desa', 'PKM Dikti']"
+                                :key="preset"
+                                type="button"
+                                @click="editForm.label = preset"
+                                class="px-2 py-0.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-300 transition-colors"
+                            >
+                                + {{ preset }}
+                            </button>
+                        </div>
                     </div>
 
                     <div>

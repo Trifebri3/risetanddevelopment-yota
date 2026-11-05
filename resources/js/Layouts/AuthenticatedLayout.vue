@@ -56,6 +56,15 @@ const page = usePage();
                                     <AppIcon name="idea" :size="15" class="mr-2" />
                                     <span>Taman Ide</span>
                                 </NavLink>
+
+                                <NavLink
+                                    :href="route('documents.index')"
+                                    :active="route().current('documents.*')"
+                                    class="inline-flex items-center px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-xl transition-colors"
+                                >
+                                    <AppIcon name="presentation" :size="15" class="mr-2" />
+                                    <span>Proposal & Pitch Deck</span>
+                                </NavLink>
                             </div>
                         </div>
 
@@ -141,6 +150,12 @@ const page = usePage();
                             <div class="flex items-center">
                                 <AppIcon name="idea" :size="16" class="mr-2.5" />
                                 <span>Taman Ide</span>
+                            </div>
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink :href="route('documents.index')" :active="route().current('documents.*')">
+                            <div class="flex items-center">
+                                <AppIcon name="presentation" :size="16" class="mr-2.5" />
+                                <span>Proposal & Pitch Deck</span>
                             </div>
                         </ResponsiveNavLink>
                     </div>

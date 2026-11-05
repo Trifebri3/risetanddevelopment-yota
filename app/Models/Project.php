@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Str;
 
 class Project extends Model
@@ -17,6 +18,7 @@ class Project extends Model
         'title',
         'slug',
         'description',
+        'label',
         'mode',
         'workflow_template_id',
         'problem_statement',
@@ -153,6 +155,16 @@ class Project extends Model
     public function members(): HasMany
     {
         return $this->hasMany(ProjectMember::class)->orderBy('role');
+    }
+
+    public function proposal(): HasOne
+    {
+        return $this->hasOne(ProjectProposal::class);
+    }
+
+    public function pitchDeck(): HasOne
+    {
+        return $this->hasOne(ProjectPitchDeck::class);
     }
 
     public function isOwner(?User $user): bool

@@ -26,7 +26,7 @@ class DashboardController extends Controller
                         ->orWhere('email', Str::lower($user->email));
                 });
         })
-            ->with(['phases', 'milestones', 'tasks', 'outputs', 'user', 'members.user'])
+            ->with(['phases', 'milestones', 'tasks', 'outputs', 'user', 'members.user', 'proposal', 'pitchDeck'])
             ->orderByDesc('is_pinned')
             ->orderByDesc('pinned_at')
             ->orderByDesc('updated_at')
@@ -37,6 +37,8 @@ class DashboardController extends Controller
             'active_projects' => $projects->where('status', 'active')->count(),
             'completed_projects' => $projects->where('status', 'completed')->count(),
             'pinned_projects' => $projects->where('is_pinned', true)->count(),
+            'total_proposals' => $projects->filter(fn ($p) => $p->proposal !== null)->count(),
+            'total_pitch_decks' => $projects->filter(fn ($p) => $p->pitchDeck !== null)->count(),
             'total_budget' => (float) BudgetItem::whereIn('project_id', $projects->pluck('id'))->sum('total_estimated_price'),
             'total_expenses' => (float) Expense::whereIn('project_id', $projects->pluck('id'))->sum('amount'),
             'total_tasks' => Task::whereIn('project_id', $projects->pluck('id'))->count(),
